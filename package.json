@@ -1,7 +1,7 @@
 {
   "name": "vue-hls-video-player",
   "private": false,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "files": [
     "dist"
@@ -24,6 +24,7 @@
   "author": "LeonidShv",
   "license": "MIT License",
   "dependencies": {
-    "hls.js": "^1.4.3"
+    "hls.js": "^1.5.19",
+    "player.style": "^0.1.1"
   }
 }

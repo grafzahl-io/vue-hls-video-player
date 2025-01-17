@@ -85,7 +85,6 @@ function prepareVideoPlayer() {
   let stream = props.link
   hls.loadSource(stream)
 
-  subtitlesContainer.value.style.display = "none";
   if (video.value) {
     hls.attachMedia(video.value)
     video.value.muted = props.isMuted
@@ -98,13 +97,22 @@ function prepareVideoPlayer() {
         track.addEventListener("cuechange", () => {
           const activeCues = track.activeCues;
           if (activeCues && activeCues.length > 0) {
-              subtitlesContainer.value.textContent = activeCues[0].text
-            }
+            subtitlesContainer.value.textContent = activeCues[0].text
+            subtitlesContainer.value.style.display = "block";
+          } else {
+            subtitlesContainer.value.style.display = "none";
+          }
         });
         if (track.mode !== previousModes[index]) {
           console.log(`Track mode changed: ${track.mode}`);
           if (track.mode === "showing") {
-            subtitlesContainer.value.style.display = "block";
+            const activeCues = track.activeCues;
+            if (activeCues && activeCues.length > 0) {
+              subtitlesContainer.value.style.display = "block";
+              subtitlesContainer.value.textContent = activeCues[0].text
+            } else {
+              subtitlesContainer.value.style.display = "none";
+            }
           } else {
             subtitlesContainer.value.style.display = "none";
           }

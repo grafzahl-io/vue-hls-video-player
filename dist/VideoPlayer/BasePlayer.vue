@@ -29,12 +29,14 @@
     </media-theme-sutro>
     <div ref="subtitlesContainer" class="custom-subtitles"></div>
   </div>
+  <SubtitleBlock :vttFile="subtitles[0]" :cursor="videoCursor"></SubtitleBlock>
 </template>
 
 <script setup>
-import { onMounted, onUpdated, ref } from 'vue'
+import { onMounted, onUpdated, ref, onUnmounted } from 'vue'
 import Hls from 'hls.js'
 import 'player.style/sutro';
+import SubtitleBlock from './SubtitleBlock.vue';
 
 const props = defineProps({
   previewImageLink: {
@@ -71,14 +73,27 @@ const props = defineProps({
 const emit = defineEmits(['pause', 'test'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
+const videoCursor = ref(0)
 
 onMounted(() => {
   prepareVideoPlayer()
+  if (video.value) {
+    video.value.addEventListener('timeupdate', updateCurrentTime);
+  }
 })
 
 onUpdated(() => {
-  prepareVideoPlayer()
 })
+
+onUnmounted(() => {
+  if (video.value) {
+    video.value.removeEventListener('timeupdate', updateCurrentTime);
+  }
+});
+
+function updateCurrentTime() {
+  videoCursor.value = video.value.currentTime;
+}
 
 function prepareVideoPlayer() {
   let hls = new Hls()
@@ -131,7 +146,7 @@ function pause() {
 }
 
 function changeSpeed(e) {
-  if (e.key === 'w' && video.value) {
+  if (e.key === 'w' && video && video.value) {
     video.value.playbackRate = video.value.playbackRate + 0.25
   } else if (e.key === 's' && video.value) {
     video.value.playbackRate = video.value.playbackRate - 0.25

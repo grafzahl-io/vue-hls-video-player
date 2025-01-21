@@ -1,5 +1,5 @@
 {
-  "name": "vue-hls-player",
+  "name": "@grfzhl/vue-hls-player",
   "private": false,
   "version": "1.0.3",
   "type": "module",

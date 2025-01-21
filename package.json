@@ -1,13 +1,13 @@
 {
-  "name": "vue-hls-video-player",
+  "name": "vue-hls-player",
   "private": false,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "files": [
     "dist"
   ],
-  "main": "./dist/vue-hls-video-player.js",
-  "module": "./dist/vue-hls-video-player.js",
+  "main": "./dist/vue-hls-player.js",
+  "module": "./dist/vue-hls-player.js",
   "keywords": [
     "m3u8",
     "m3u8 video player",
@@ -15,13 +15,14 @@
     "hls video player",
     "hls",
     "vue hls video player",
-    "vue hls"
+    "vue hls",
+    "caption subtitle"
   ],
-  "homepage": "https://github.com/LeonidShv/vue-hls-video-player",
+  "homepage": "https://github.com/grafzahl-io/vue-hls-video-player",
   "bugs": {
-    "url": "https://github.com/LeonidShv/vue-hls-video-player/issues"
+    "url": "https://github.com/grafzahl-io/vue-hls-video-player/issues"
   },
-  "author": "LeonidShv",
+  "author": "Oliver Schörwerth",
   "license": "MIT License",
   "dependencies": {
     "hls.js": "^1.5.19",

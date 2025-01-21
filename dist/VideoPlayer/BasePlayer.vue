@@ -29,11 +29,11 @@
     </media-theme-sutro>
     <div ref="subtitlesContainer" class="custom-subtitles"></div>
   </div>
-  <SubtitleBlock :vttFile="subtitles[0]" :cursor="videoCursor"></SubtitleBlock>
+  <SubtitleBlock v-if="showSubtitleBlock" :subtitle="currentSubtitle" :cursor="videoCursor"></SubtitleBlock>
 </template>
 
 <script setup>
-import { onMounted, onUpdated, ref, onUnmounted } from 'vue'
+import { onMounted, onUpdated, ref, onUnmounted, computed } from 'vue'
 import Hls from 'hls.js'
 import 'player.style/sutro';
 import SubtitleBlock from './SubtitleBlock.vue';
@@ -67,12 +67,21 @@ const props = defineProps({
   subtitles: {
     type: Array,
     default: []
+  },
+  /**
+   * true, if showing separate
+   * block with transcripts
+   */
+  showSubtitleBlock: {
+    type: Boolean,
+    default: true
   }
 })
 
 const emit = defineEmits(['pause', 'test'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
+const currentSubtitleLang = ref(null)
 const videoCursor = ref(0)
 
 onMounted(() => {
@@ -90,6 +99,17 @@ onUnmounted(() => {
     video.value.removeEventListener('timeupdate', updateCurrentTime);
   }
 });
+
+const currentSubtitle = computed(() => {
+  if(props.subtitles) {
+    const current = props.subtitles.filter((subt) => {
+      return subt.lang === currentSubtitleLang.value
+    })
+console.log("found current", current)
+    return current.length ? current[0] : null
+  }
+  return null
+})
 
 function updateCurrentTime() {
   videoCursor.value = video.value.currentTime;
@@ -111,6 +131,7 @@ function prepareVideoPlayer() {
       Array.from(textTracks).forEach((track, index) => {
         track.addEventListener("cuechange", () => {
           const activeCues = track.activeCues;
+          currentSubtitleLang.value = track.language
           if (activeCues && activeCues.length > 0) {
             subtitlesContainer.value.textContent = activeCues[0].text
             subtitlesContainer.value.style.display = "block";
@@ -119,9 +140,9 @@ function prepareVideoPlayer() {
           }
         });
         if (track.mode !== previousModes[index]) {
-          console.log(`Track mode changed: ${track.mode}`);
           if (track.mode === "showing") {
             const activeCues = track.activeCues;
+            currentSubtitleLang.value = track.language
             if (activeCues && activeCues.length > 0) {
               subtitlesContainer.value.style.display = "block";
               subtitlesContainer.value.textContent = activeCues[0].text

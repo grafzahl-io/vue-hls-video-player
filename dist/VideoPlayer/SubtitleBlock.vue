@@ -20,9 +20,9 @@
 import { onMounted, onUpdated, ref } from 'vue'
 
 const props = defineProps({
-  vttFile: {
-    type: String,
-    default: ''
+  subtitle: {
+    type: Object,
+    default: null
   },
   cursor: {
     type: Number,
@@ -35,11 +35,15 @@ const subtitlesContainer = ref(null)
 const cues = ref([])
 
 onMounted(async () => {
-  cues.value = await parseVTT(props.vttFile.link)
-  console.log(cues.value)
+  if(props.subtitle) {
+    cues.value = await parseVTT(props.subtitle.link)
+  }
 })
 
 onUpdated(async () => {
+  if(props.subtitle) {
+    cues.value = await parseVTT(props.subtitle.link)
+  }
   // auto scroll text
   if(subtitlesContainer) {
     const activeSubtitle = subtitlesContainer?.value?.querySelectorAll('li.current-highlight')[0];

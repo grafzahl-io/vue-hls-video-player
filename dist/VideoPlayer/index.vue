@@ -6,7 +6,6 @@
     :link="link"
     :progress="progress"
     :isMuted="isMuted"
-    :isControls="isControls"
   />
 
   <VPreviewVideoPlayer

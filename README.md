@@ -120,6 +120,11 @@ it can show and hide the video control panel
 subtitles to add as tracks to the video
 
 ### Last release:
+v1.0.4
+1. Make subtitles dynamic
+2. Add new switch to disable the subtitle block
+3. Fix some minor issues
+
 v1.0.3
 1. Removed controls in favour of themable overlay by `player.style`.
 2. Updated hls library

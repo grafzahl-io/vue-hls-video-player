@@ -1,15 +1,18 @@
 <template>
-  <div class="video-container">
-    <media-theme-sutro>
+  <div class="video-container test">
+    <media-theme-sutro class="video-player-theme-container">
       <video
+        class="hls-player"
         slot="media"
         @pause="pause"
-        @ended="pause"
         @keyup="changeSpeed"
+        @ended="onVideoEnd"
+        @seek="seekVideo"
         ref="video"
         :poster="previewImageLink"
         :controls="false"
         :title="title"
+        :isFullscreen="isFullscreen"
         controlslist="nodownload"
         playsinline
         crossorigin
@@ -26,10 +29,15 @@
           :srclang="subtitle.lang"
           :label="subtitle.label" :default="i === 0" />
       </video>
+      <div ref="subtitlesContainer" class="custom-subtitles" style="display: none;"></div>
     </media-theme-sutro>
-    <div ref="subtitlesContainer" class="custom-subtitles"></div>
   </div>
-  <SubtitleBlock v-if="showSubtitleBlock" :subtitle="currentSubtitle" :cursor="videoCursor"></SubtitleBlock>
+  <SubtitleBlock
+    v-if="showTranscriptBlock"
+    :subtitle="currentSubtitle"
+    :cursor="videoCursor" 
+    @seek="seekVideo" >
+  </SubtitleBlock>
 </template>
 
 <script setup>
@@ -72,22 +80,30 @@ const props = defineProps({
    * true, if showing separate
    * block with transcripts
    */
-  showSubtitleBlock: {
+  showTranscriptBlock: {
     type: Boolean,
     default: true
+  },
+  isFullscreen: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['pause', 'test'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
 const videoCursor = ref(0)
+const isFullscreen = ref(false); 
 
 onMounted(() => {
+console.log("mounted current - - changed")
   prepareVideoPlayer()
   if (video.value) {
+    checkFullscreen();
     video.value.addEventListener('timeupdate', updateCurrentTime);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
   }
 })
 
@@ -97,6 +113,7 @@ onUpdated(() => {
 onUnmounted(() => {
   if (video.value) {
     video.value.removeEventListener('timeupdate', updateCurrentTime);
+    document.removeEventListener('fullscreenchange', onFullscreenChange);
   }
 });
 
@@ -105,14 +122,27 @@ const currentSubtitle = computed(() => {
     const current = props.subtitles.filter((subt) => {
       return subt.lang === currentSubtitleLang.value
     })
-console.log("found current", current)
     return current.length ? current[0] : null
   }
   return null
 })
 
+function checkFullscreen() {
+  isFullscreen.value = document.fullscreenElement === video.value;
+};
+
+function onFullscreenChange() {
+  checkFullscreen();
+  emit('video-fullscreen-change', isFullscreen)
+};
+
+
 function updateCurrentTime() {
   videoCursor.value = video.value.currentTime;
+}
+
+function seekVideo(time) {
+  video.value.currentTime = time;
 }
 
 function prepareVideoPlayer() {
@@ -166,6 +196,12 @@ function pause() {
   emit('pause', currentTime)
 }
 
+function onVideoEnd() {
+  const currentTime = video?.value?.currentTime || 0
+  pause()
+  emit('video-ended', { currentTime: currentTime, video });
+}
+
 function changeSpeed(e) {
   if (e.key === 'w' && video && video.value) {
     video.value.playbackRate = video.value.playbackRate + 0.25
@@ -198,5 +234,9 @@ function changeSpeed(e) {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     margin-top: -120px;
     transform: translateX(-50%) translateY(-100%);
+  }
+
+  .video-player-theme-container, .hls-player {
+    width: 100%;
   }
 </style>

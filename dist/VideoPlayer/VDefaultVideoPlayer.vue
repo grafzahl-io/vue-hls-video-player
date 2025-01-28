@@ -5,14 +5,19 @@
     :progress="progress"
     :isMuted="isMuted"
     :isControls="isControls"
+    :onVideoEnd="onVideoEnd"
+    :isFullscreen="isFullscreen"
+    :showTranscriptBlock="showTranscriptBlock"
     @pause="pause"
+    @video-ended="onVideoEnd"
+    @video-fullscreen-change="onFullscreenChange"
   />
 </template>
 
 <script setup>
 import BasePlayer from './BasePlayer.vue'
 
-const emit = defineEmits(['pause'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
 
 defineProps({
   previewImageLink: {
@@ -35,9 +40,26 @@ defineProps({
     type: Boolean,
     default: true
   },
+  isFullscreen: {
+    type: Boolean,
+    default: false
+  },
+  showTranscriptBlock: {
+    type: Boolean,
+    default: true
+  }
 })
 
 function pause(currentTime) {
   emit('pause', currentTime)
+}
+
+function onVideoEnd(data) {
+  pause()
+  emit('video-ended', data);
+}
+
+function onFullscreenChange(data) {
+  emit('video-fullscreen-change', data);
 }
 </script>

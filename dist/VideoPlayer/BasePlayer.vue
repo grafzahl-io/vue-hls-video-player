@@ -1,5 +1,5 @@
 <template>
-  <div class="video-container test">
+  <div class="video-container">
     <media-theme-sutro class="video-player-theme-container">
       <video
         class="hls-player"
@@ -29,14 +29,17 @@
           :srclang="subtitle.lang"
           :label="subtitle.label" :default="i === 0" />
       </video>
-      <div ref="subtitlesContainer" class="custom-subtitles" style="display: none;"></div>
     </media-theme-sutro>
+    <div class="custom-subtitles" v-show="!showTranscriptBlock">
+      <div class="subtitle-text" ref="subtitlesContainer" style="display: none;"></div>
+    </div>
   </div>
   <SubtitleBlock
-    v-if="showTranscriptBlock"
     :subtitle="currentSubtitle"
     :cursor="videoCursor" 
-    @seek="seekVideo" >
+    :showTranscriptBlock="showTranscriptBlock"
+    @seek="seekVideo"
+    @toggleTranscript="toggleTranscript">
   </SubtitleBlock>
 </template>
 
@@ -95,7 +98,7 @@ const video = ref(null)
 const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
 const videoCursor = ref(0)
-const isFullscreen = ref(false); 
+const isFullscreen = ref(false);
 
 onMounted(() => {
 console.log("mounted current - - changed")
@@ -141,8 +144,13 @@ function updateCurrentTime() {
   videoCursor.value = video.value.currentTime;
 }
 
+function toggleTranscript() {
+  props.showTranscriptBlock = !props.showTranscriptBlock
+}
+
 function seekVideo(time) {
   video.value.currentTime = time;
+  video.play()
 }
 
 function prepareVideoPlayer() {
@@ -192,7 +200,6 @@ function prepareVideoPlayer() {
 
 function pause() {
   const currentTime = video?.value?.currentTime || 0
-
   emit('pause', currentTime)
 }
 
@@ -222,21 +229,26 @@ function changeSpeed(e) {
     position: absolute;
     left: 50%;
     width: auto;
-    max-width: 90%;
+    max-width: 95%;
     text-align: center;
     background: rgba(0, 0, 0, 0.7);
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transform: translate(-50%) translateY(calc(-100% - 60px));
+  }
+  .custom-subtitles .subtitle-text {
     color: white;
-    font-size: 16px;
+    font-size: 14px;
     font-family: Arial, sans-serif;
     line-height: 1.5;
-    padding: 10px 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    margin-top: -120px;
-    transform: translateX(-50%) translateY(-100%);
+    padding: 8px 10px;
   }
 
   .video-player-theme-container, .hls-player {
     width: 100%;
+  }
+
+  .video-container {
+    position: relative;
   }
 </style>

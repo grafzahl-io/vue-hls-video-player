@@ -1,33 +1,59 @@
 <template>
   <div class="transcript-container" ref="subtitlesContainer">
-    <ul v-if="txtCues.length" class="subtitles">
+    <div class="transcript-toggle">
+      <button data-headlessui-state="open" @click="toggleTranscript()">
+        <div class="icon">
+          <svg v-if="!showTranscriptBlock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon duration-200 h-4 w-4 text-gray-900 stroke-1"><path d="m9 18 6-6-6-6"></path></svg>
+          <svg v-if="showTranscriptBlock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon rotate-90 transform duration-200 h-4 w-4 text-gray-900 stroke-1"><path d="m9 18 6-6-6-6"></path></svg>
+        </div>
+        Transcript
+      </button>
+    </div>
+    <ul v-if="txtCues.length && showTranscriptBlock" class="subtitles">
       <li
         v-for="(txtCue, index) in txtCues"
         :key="index"
         :class="{ 'current-highlight': isTxtCueActive(txtCue) }"
         @click="seekTo(txtCue.start)"
       >
-        <span class="seconds">{{ secondsToTime(txtCue.start) }} - {{ secondsToTime(txtCue.end) }}</span>
-        <span class="text">
-          <span class="narrator">{{ txtCue.dialog[0].speaker }}</span>
-          <span
-            v-for="(word, wordIndex) in txtCue.dialog[0].text.split('')"
-            :key="wordIndex"
-            :class="{ 'active-word': isWordActive(txtCue, word, wordIndex, index) && isTxtCueActive(txtCue) }"
-          >
-            {{ word }}
+        <div class="play-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-play lucide transform duration-200 h-4 w-4 text-gray-900 stroke-1"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
+        </div>
+        <div class="content">
+          <span class="meta">
+            <span class="seconds">{{ secondsToTime(txtCue.start) }} - {{ secondsToTime(txtCue.end) }}</span>
+            <span class="narrator">{{ txtCue.dialog[0].speaker }}</span>
           </span>
-        </span>
+          <span class="text">
+            <span
+              v-for="(word, wordIndex) in txtCue.dialog[0].text.split('')"
+              :key="wordIndex"
+              :class="{ 'active-word': isWordActive(txtCue, word, wordIndex, index) && isTxtCueActive(txtCue) }"
+            >
+              {{ word }}
+            </span>
+          </span>
+        </div>
       </li>
     </ul>
   </div>
 </template>
 
 <style lang="css" scoped>
+.transcript-toggle {
+  font-weight: bold;
+}
+.transcript-toggle button {
+  display: flex;
+}
+.transcript-toggle button .icon {
+  padding: 3px;
+}
 .transcript-container {
   max-height: 400px;
   overflow-y: scroll;
-  border: 1px solid #ccc;
+  border-radius: 8px;
+  border: 1px solid var(--outline-gray-1);
   padding: 10px;
   font-family: Arial, sans-serif;
 }
@@ -41,15 +67,32 @@
 .subtitles li {
   padding: 5px;
   cursor: pointer;
+  display: flex;
+}
+
+.subtitles li .play-icon {
+  min-width: 24px;
+  padding-top: 4px;
+}
+
+.subtitles li .content .meta {
+  display: flex;
+  padding-bottom: 4px;
+}
+.subtitles li .content .meta .seconds {
+  font-weight: 500;
+}
+
+.subtitles li .content .meta .narrator {
+  padding-left: 10px;
+  font-weight: 500;
 }
 
 .subtitles li.current-highlight {
-  background-color: #f7f7f7;
 }
 
 .subtitles li .active-word {
-  font-weight: bold;
-  background-color: yellow;
+  background-color: var(--outline-gray-1);
 }
 
 .subtitles li .seconds {
@@ -74,15 +117,17 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  showTranscriptBlock: {
+    type: Boolean,
+    default: true
+  }
 });
 
-const emit = defineEmits(['seek']);
+const emit = defineEmits(['seek', 'toggleTranscript']);
 const subtitlesContainer = ref(null);
 const vttCues = ref([]);
 const txtCues = ref([]);
 const currentCue = ref(null);
-const usedHighlighted = ref({});
-const currentTxtCue = ref(null)
 
 
 const loadCues = async () => {
@@ -127,6 +172,10 @@ function highlightActiveCue(currentTime) {
   }
 }
 
+function toggleTranscript() {
+  emit('toggleTranscript', null)
+}
+
 function seekTo(time) {
   emit('seek', time);
 }
@@ -164,7 +213,6 @@ function checkCurrentCue(currentCursor) {
   Array.from(vttCues.value).forEach((a, index) => {
     if(currentCursor >= a.start && currentCursor <= a.end) {
       currentCue.value = a.text
-      // usedHighlighted.value = {}
     }
   });
 }

@@ -120,6 +120,11 @@ it can show and hide the video control panel
 subtitles to add as tracks to the video
 
 ### Last release:
+v1.0.5
+1. Load transcriptions additionally to subtitles
+2. Add styled transcription block for better readability
+3. Improve interaction and dynamic params
+
 v1.0.4
 1. Make subtitles dynamic
 2. Add new switch to disable the subtitle block

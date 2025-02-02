@@ -59,7 +59,6 @@ defineProps({
     default: true
   }
 })
-console.log("abc <<<<<<<<<<<<<")
 
 function pause(currentTime) {
   emit('pause', currentTime)

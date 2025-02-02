@@ -12,7 +12,6 @@
         :poster="previewImageLink"
         :controls="false"
         :title="title"
-        :isFullscreen="isFullscreen"
         controlslist="nodownload"
         playsinline
         crossorigin
@@ -101,7 +100,6 @@ const videoCursor = ref(0)
 const isFullscreen = ref(false);
 
 onMounted(() => {
-console.log("mounted current - - changed")
   prepareVideoPlayer()
   if (video.value) {
     checkFullscreen();
@@ -131,12 +129,12 @@ const currentSubtitle = computed(() => {
 })
 
 function checkFullscreen() {
-  isFullscreen.value = document.fullscreenElement === video.value;
+  isFullscreen.value = !!document.fullscreenElement;
 };
 
 function onFullscreenChange() {
   checkFullscreen();
-  emit('video-fullscreen-change', isFullscreen)
+  emit('video-fullscreen-change', document.fullscreenElement)
 };
 
 

@@ -1,38 +1,45 @@
 <template>
   <div class="video-container">
-    <media-theme-sutro class="video-player-theme-container">
-      <video
-        class="hls-player"
-        slot="media"
-        @pause="pause"
-        @keyup="changeSpeed"
-        @ended="onVideoEnd"
-        @seek="seekVideo"
-        ref="video"
-        :poster="previewImageLink"
-        :controls="false"
-        :title="title"
-        controlslist="nodownload"
-        playsinline
-        crossorigin
-      >
-        <source
-          :src="link"
-          type="application/x-mpegURL"
-        />
-        <track 
-          v-if="subtitles.length"
-          v-for="(subtitle, i) in subtitles"
-          :src="subtitle.link"
-          kind="subtitles"
-          :srclang="subtitle.lang"
-          :label="subtitle.label" :default="i === 0" />
-      </video>
-    </media-theme-sutro>
-    <div class="custom-subtitles" v-show="!showTranscriptBlock">
-      <div class="subtitle-text" ref="subtitlesContainer" style="display: none;"></div>
+    <div class="media-container" id="hls-player-media-container">
+      <slot name="before-media"></slot>
+      <media-theme-sutro class="video-player-theme-container">
+        <video
+          class="hls-player"
+          slot="media"
+          @pause="pause"
+          @keyup="changeSpeed"
+          @ended="onVideoEnd"
+          @seek="seekVideo"
+          ref="video"
+          :poster="previewImageLink"
+          :controls="false"
+          :title="title"
+          controlslist="nodownload"
+          playsinline
+          crossorigin
+          :muted="mutedAttr"
+          :autoplay="autoplay && isMuted"
+        >
+          <source
+            :src="link"
+            type="application/x-mpegURL"
+          />
+          <track 
+            v-if="subtitles.length"
+            v-for="(subtitle, i) in subtitles"
+            :src="subtitle.link"
+            kind="subtitles"
+            :srclang="subtitle.lang"
+            :label="subtitle.label" :default="i === 0" />
+        </video>
+      </media-theme-sutro>
+      <div class="custom-subtitles" v-show="(isFullscreen) || (!showTranscriptBlock)">
+        <div class="subtitle-text" ref="subtitlesContainer" style="display: none;"></div>
+      </div>
+      <slot name="after-media"></slot>
     </div>
   </div>
+  <slot name="before-transcripts"></slot>
   <SubtitleBlock
     :subtitle="currentSubtitle"
     :cursor="videoCursor" 
@@ -40,10 +47,12 @@
     @seek="seekVideo"
     @toggleTranscript="toggleTranscript">
   </SubtitleBlock>
+  <slot name="after-transcripts"></slot>
+  <slot name="default"></slot>
 </template>
 
 <script setup>
-import { onMounted, onUpdated, ref, onUnmounted, computed } from 'vue'
+import { onMounted, onUpdated, ref, onUnmounted, computed, watch } from 'vue'
 import Hls from 'hls.js'
 import 'player.style/sutro';
 import SubtitleBlock from './SubtitleBlock.vue';
@@ -66,6 +75,10 @@ const props = defineProps({
     default: ''
   },
   isMuted: {
+    type: Boolean,
+    default: false
+  },
+  autoplay: {
     type: Boolean,
     default: false
   },
@@ -99,10 +112,17 @@ const currentSubtitleLang = ref(null)
 const videoCursor = ref(0)
 const isFullscreen = ref(false);
 
+const videoElement = defineModel()
+
 onMounted(() => {
   prepareVideoPlayer()
   if (video.value) {
-    checkFullscreen();
+
+    // pass video element as reference to model
+    if (!videoElement.value) {
+      videoElement.value = video.value;
+    }
+
     video.value.addEventListener('timeupdate', updateCurrentTime);
     document.addEventListener('fullscreenchange', onFullscreenChange);
 
@@ -135,6 +155,7 @@ onMounted(() => {
 })
 
 onUpdated(() => {
+
 })
 
 onUnmounted(() => {
@@ -143,6 +164,11 @@ onUnmounted(() => {
     document.removeEventListener('fullscreenchange', onFullscreenChange);
   }
 });
+
+const mutedAttr = computed(() => {
+  // autoplay is only possible when muted
+  return (props.autoplay || props.isMuted);
+})
 
 const currentSubtitle = computed(() => {
   if(props.subtitles) {
@@ -154,12 +180,17 @@ const currentSubtitle = computed(() => {
   return null
 })
 
-function checkFullscreen() {
-  isFullscreen.value = !!document.fullscreenElement;
-};
+watch([props, videoElement], (a) => {
+  if(a[0].autoplay && a[1]) {
+    // autoplay is only possible when muted
+    a[1].muted = true
+    setTimeout(() => {
+      a[1].play();
+    }, 200)
+  }
+})
 
 function onFullscreenChange() {
-  checkFullscreen();
   emit('video-fullscreen-change', document.fullscreenElement)
 };
 
@@ -194,25 +225,31 @@ function prepareVideoPlayer() {
         track.addEventListener("cuechange", () => {
           const activeCues = track.activeCues;
           currentSubtitleLang.value = track.language
-          if (activeCues && activeCues.length > 0) {
-            subtitlesContainer.value.textContent = activeCues[0].text
-            subtitlesContainer.value.style.display = "block";
-          } else {
-            subtitlesContainer.value.style.display = "none";
+          if(subtitlesContainer.value) {
+            if (activeCues && activeCues.length > 0) {
+              subtitlesContainer.value.textContent = activeCues[0].text
+              subtitlesContainer.value.style.display = "block";
+            } else {
+              subtitlesContainer.value.style.display = "none";
+            }
           }
         });
         if (track.mode !== previousModes[index]) {
           if (track.mode === "showing") {
             const activeCues = track.activeCues;
             currentSubtitleLang.value = track.language
-            if (activeCues && activeCues.length > 0) {
-              subtitlesContainer.value.style.display = "block";
-              subtitlesContainer.value.textContent = activeCues[0].text
-            } else {
-              subtitlesContainer.value.style.display = "none";
+            if(subtitlesContainer.value) {
+              if (activeCues && activeCues.length > 0) {
+                subtitlesContainer.value.style.display = "block";
+                subtitlesContainer.value.textContent = activeCues[0].text
+              } else {
+                subtitlesContainer.value.style.display = "none";
+              }
             }
           } else {
-            subtitlesContainer.value.style.display = "none";
+            if(subtitlesContainer.value) {
+              subtitlesContainer.value.style.display = "none";
+            }
           }
           previousModes[index] = track.mode;
         }

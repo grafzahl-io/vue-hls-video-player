@@ -11,8 +11,15 @@
     :link="link"
     :progress="progress"
     :isMuted="isMuted"
-  />
-
+    :autoplay="autoplay"
+    v-model="videoElement"
+  >
+    <template v-slot:before-media><slot name="before-media"></slot></template>
+    <template v-slot:after-media><slot name="after-media"></slot></template>
+    <template v-slot:before-transcripts><slot name="before-transcripts"></slot></template>
+    <template v-slot:after-transcripts><slot name="after-transcripts"></slot></template>
+  </VDefaultVideoPlayer>
+  
   <VPreviewVideoPlayer
     v-else-if="type === 'preview'"
     :previewImageLink="previewImageLink"
@@ -23,8 +30,11 @@
 <script setup>
 import VDefaultVideoPlayer from './VDefaultVideoPlayer.vue'
 import VPreviewVideoPlayer from './VPreviewVideoPlayer.vue'
+import { ref } from 'vue'
 
 const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
+
+const videoElement = ref(null);
 
 defineProps({
   previewImageLink: {
@@ -44,6 +54,10 @@ defineProps({
     default: 0
   },
   isMuted: {
+    type: Boolean,
+    default: false
+  },
+  autoplay: {
     type: Boolean,
     default: false
   },

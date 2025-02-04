@@ -172,7 +172,21 @@ example:
 }]
 ```
 
+**isMuted**:
+1 value: true or false, type: Boolean
+
+it makes the video muted
+
+**autoplay**:
+1. value: true or false, type Boolean
+
+it will set the native <video> autoplay property
+
 ### Last release:
+v1.0.8
+- Add slots to inject own elements nearby video element
+- Add prop for autoplay video
+
 v1.0.7
 - Add function to handle own logic for fullscreen
 

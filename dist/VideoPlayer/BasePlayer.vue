@@ -92,7 +92,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
@@ -105,6 +105,32 @@ onMounted(() => {
     checkFullscreen();
     video.value.addEventListener('timeupdate', updateCurrentTime);
     document.addEventListener('fullscreenchange', onFullscreenChange);
+
+    /**
+     * overwrite player.style video fullscreen button
+     * to inject own fullscreen logic
+     */
+    const observer = new MutationObserver((mutationsList, observer) => {
+    const mediaTheme = document.querySelector('.video-player-theme-container');
+
+    if (mediaTheme && mediaTheme.shadowRoot) {
+      const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
+      if (fullscreenButton) {
+        fullscreenButton.handleClick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          emit('video-fullscreen-action', event)
+        }
+        observer.disconnect();
+      } else {
+        console.error('Button not found in Shadow DOM!');
+      }
+    } else {
+      console.error('Shadow Root not found!');
+    }
+    })
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 })
 

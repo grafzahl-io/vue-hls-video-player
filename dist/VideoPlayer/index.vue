@@ -4,6 +4,7 @@
     @pause="pause"
     @video-fullscreen-change="onVideoFullScreenChange"
     @video-ended="onVideoEnd"
+    @video-fullscreen-action="oVideoFullscreenAction"
     :previewImageLink="previewImageLink"
     :showTranscriptBlock="showTranscriptBlock"
     :isFullscreen="isFullscreen"
@@ -23,7 +24,7 @@
 import VDefaultVideoPlayer from './VDefaultVideoPlayer.vue'
 import VPreviewVideoPlayer from './VPreviewVideoPlayer.vue'
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
 
 defineProps({
   previewImageLink: {
@@ -68,5 +69,8 @@ function onVideoFullScreenChange(data) {
 }
 function onVideoEnd(data) {
   emit('video-ended', data);
+}
+function oVideoFullscreenAction(data) {
+  emit('video-fullscreen-action', data)
 }
 </script>

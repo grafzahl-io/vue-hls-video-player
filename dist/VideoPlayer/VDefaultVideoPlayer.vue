@@ -11,6 +11,7 @@
     @pause="pause"
     @video-ended="onVideoEnd"
     @video-fullscreen-change="onFullscreenChange"
+    @video-fullscreen-action="oVideoFullscreenAction"
   />
 </template>
 
@@ -61,5 +62,9 @@ function onVideoEnd(data) {
 
 function onFullscreenChange(data) {
   emit('video-fullscreen-change', data);
+}
+
+function oVideoFullscreenAction(data) {
+  emit('video-fullscreen-action', data)
 }
 </script>

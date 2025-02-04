@@ -39,24 +39,26 @@ npm i vue-hls-player
 </script>
 
 <template>
-  <VideoPlayer
-      type="default"
-      @pause="processPause"
-      previewImageLink="poster.webp"
-      link="videoLink.m3u8"
-      :progress="30"
-      :isMuted="false"
-      :isControls="true"
-			:subtitles="subtitles"
-      class="customClassName"
-  />
+  <div id="video-container">
+    <VideoPlayer
+        type="default"
+        @pause="processPause"
+        previewImageLink="poster.webp"
+        link="videoLink.m3u8"
+        :progress="30"
+        :isMuted="false"
+        :isControls="true"
+        :subtitles="subtitles"
+        class="customClassName"
+    />
 
-  <VideoPlayer
-      type="preview"
-      previewImageLink="poster.webp"
-      link="videoLink.m3u8"
-      class="customClassName"
-  />
+    <VideoPlayer
+        type="preview"
+        previewImageLink="poster.webp"
+        link="videoLink.m3u8"
+        class="customClassName"
+    />
+  </div>
 </template>
 ```
 For **nuxt 3**, try to wrap this component in ClientOnly, images for previewImageLink need to store in public folder
@@ -97,6 +99,49 @@ function processPause(progress: number) {
   console.log(progress)
 }
 ```
+
+**@video-ended**:
+1. Event, called if the video has ended
+@video-ended="videoEnded"
+```
+const videoEnded = (data) => {
+  console.log("video ended at time: ", data.currentTime)
+  console.log("video element ", data.video)
+}
+```
+
+**@video-fullscreen-change**:
+1. Event, event dispatcher for detecting fullscreen change
+@video-fullscreen-change="fullscreenChange"
+```
+const fullScreenAction = (fullScreenElement) => {
+	if(fullScreenElement === null) {
+		console.log("fullscreen is off")
+	} else {
+		console.log("fullscreen is on")
+	}
+}
+```
+
+**@video-fullscreen-action**:
+1. Event, handling the fullscreen action of the player
+@video-fullscreen-action="fullScreenAction"
+```
+const fullScreenAction = (data) => {
+	if(isFullscreen.value) {
+		document.exitFullscreen();
+	} else {
+		document.getElementById("video-container").requestFullscreen()
+	}
+}
+```
+**showTranscriptBlock**:
+1. value: true or false, type: Boolean
+
+pass true, if you want to show the transcript block.
+To make transcripts work, your need to provide `.txt` files
+in the same path and base-filename like the passed `subtitles` prop.
+
 **previewImageLink**: 
 1. value: 'poster.webp', type: String
 
@@ -118,19 +163,34 @@ it can show and hide the video control panel
 1. value: array of object, for subtitles to append: object has link, lang
 
 subtitles to add as tracks to the video
+example: 
+```
+[{
+  link: `https://url-to-your/subtitles.vtt`,
+  label: 'English',
+  lang: 'en'
+}]
+```
 
 ### Last release:
+v1.0.7
+- Add function to handle own logic for fullscreen
+
+v1.0.6
+- Small fixes
+- Remove debug log
+
 v1.0.5
-1. Load transcriptions additionally to subtitles
-2. Add styled transcription block for better readability
-3. Improve interaction and dynamic params
+- Load transcriptions additionally to subtitles
+- Add styled transcription block for better readability
+- Improve interaction and dynamic params
 
 v1.0.4
-1. Make subtitles dynamic
-2. Add new switch to disable the subtitle block
-3. Fix some minor issues
+- Make subtitles dynamic
+- Add new switch to disable the subtitle block
+- Fix some minor issues
 
 v1.0.3
-1. Removed controls in favour of themable overlay by `player.style`.
-2. Updated hls library
-3. Added styled caption overlays. Added separate container to show all captions.
+- Removed controls in favour of themable overlay by `player.style`.
+- Updated hls library
+- Added styled caption overlays. Added separate container to show all captions.

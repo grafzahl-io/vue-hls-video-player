@@ -1,5 +1,5 @@
 <template>
-  <div class="transcript-container" ref="subtitlesContainer">
+  <div class="transcript-container" ref="subtitlesContainer" v-if="showTranscriptBlock">
     <div class="transcript-toggle">
       <button data-headlessui-state="open" @click="toggleTranscript()">
         <div class="icon">

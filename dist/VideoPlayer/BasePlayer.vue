@@ -2,7 +2,7 @@
   <div class="video-container">
     <div class="media-container" id="hls-player-media-container">
       <slot name="before-media"></slot>
-      <media-theme-sutro class="video-player-theme-container">
+      <media-theme-sutro class="video-player-theme-container" :class="{'is-fullscreen': isFullscreen}">
         <video
           class="hls-player"
           slot="media"
@@ -191,6 +191,7 @@ watch([props, videoElement], (a) => {
 })
 
 function onFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement
   emit('video-fullscreen-change', document.fullscreenElement)
 };
 
@@ -307,9 +308,22 @@ function changeSpeed(e) {
 
   .video-player-theme-container, .hls-player {
     width: 100%;
+    height: 100%;
   }
 
   .video-container {
     position: relative;
+    line-height: 0;
   }
+
+  .video-player-theme-container.is-fullscreen {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+  }
+  .video-player-theme-container.is-fullscreen .hls-player {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+   }
 </style>

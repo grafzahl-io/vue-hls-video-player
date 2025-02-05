@@ -183,6 +183,10 @@ it makes the video muted
 it will set the native <video> autoplay property
 
 ### Last release:
+v1.0.9
+- Fix sizes in fullscreen mode for video
+- Hide transcript block completely when hidden
+
 v1.0.8
 - Add slots to inject own elements nearby video element
 - Add prop for autoplay video

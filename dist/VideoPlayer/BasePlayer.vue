@@ -111,6 +111,7 @@ const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
 const videoCursor = ref(0)
 const isFullscreen = ref(false);
+const orientation = ref(null)
 
 const videoElement = defineModel()
 
@@ -125,6 +126,21 @@ onMounted(() => {
 
     video.value.addEventListener('timeupdate', updateCurrentTime);
     document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('orientationchange', onOrientationChange);
+    window.screen.orientation.addEventListener("change", onOrientationChange);
+    
+    /**
+     * detect initial display orientation
+     */
+    if (typeof window.orientation === "undefined") {
+      orientation.value = window.screen.orientation.angle === 0 || window.screen.orientation.angle === 180 
+        ? "portrait" 
+        : "landscape";
+    } else {
+      orientation.value = window.orientation === 0 || window.orientation === 180 
+        ? "portrait" 
+        : "landscape"; // for safari
+    }
 
     /**
      * overwrite player.style video fullscreen button
@@ -136,11 +152,11 @@ onMounted(() => {
     if (mediaTheme && mediaTheme.shadowRoot) {
       const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
       if (fullscreenButton) {
-        fullscreenButton.handleClick = (event) => {
+        fullscreenButton.handleClick = async (event) => {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          emit('video-fullscreen-action', event)
+          enterFullscreen(event)
         }
         observer.disconnect();
       } else {
@@ -162,6 +178,8 @@ onUnmounted(() => {
   if (video.value) {
     video.value.removeEventListener('timeupdate', updateCurrentTime);
     document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('orientationchange', onOrientationChange);
+    window.screen.orientation.addEventListener("change", onOrientationChange);
   }
 });
 
@@ -195,6 +213,22 @@ function onFullscreenChange() {
   emit('video-fullscreen-change', document.fullscreenElement)
 };
 
+function onOrientationChange(e) { 
+  let angle;
+  if (e.target && e.target.screen && e.target.screen.orientation) {
+    angle = e.target.screen.orientation.angle;
+  } else if (typeof window.orientation !== "undefined") {
+    // extra sausage for safari
+    angle = window.orientation;
+  }
+  orientation.value = angle === 0 || angle === 180 
+    ? "portrait" 
+    : "landscape";
+}
+
+function enterFullscreen(event) {
+  emit('video-fullscreen-action', event)
+}
 
 function updateCurrentTime() {
   videoCursor.value = video.value.currentTime;
@@ -316,6 +350,8 @@ function changeSpeed(e) {
     line-height: 0;
   }
 
+  .fullscreen-video .media-container {
+  }
   .video-player-theme-container.is-fullscreen {
     width: 100vw;
     height: 100vh;

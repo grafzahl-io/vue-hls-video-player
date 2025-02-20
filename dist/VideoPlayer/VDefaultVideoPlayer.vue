@@ -26,7 +26,7 @@
 import BasePlayer from './BasePlayer.vue'
 import { ref } from 'vue'
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
 
 const videoElement = ref(null);
 

@@ -1,6 +1,11 @@
 <template>
   <div class="video-container">
-    <div class="media-container" id="hls-player-media-container">
+    <div class="media-container" id="hls-player-media-container" :class="{'is-fullscreen': isFullscreen}">
+      <div class="media-fullscreen-overlay" v-if="introTitle">
+        <div class="intro-title" :class="{ 'auto-hide': autoHideIntroTitle }">
+          <h2>{{ introTitle }}</h2>
+        </div>
+      </div>
       <slot name="before-media"></slot>
       <media-theme-sutro class="video-player-theme-container" :class="{'is-fullscreen': isFullscreen}">
         <video
@@ -58,6 +63,10 @@ import 'player.style/sutro';
 import SubtitleBlock from './SubtitleBlock.vue';
 
 const props = defineProps({
+  introTitle: {
+    type: String,
+    default: ''
+  },
   previewImageLink: {
     type: String,
     default: ''
@@ -112,6 +121,7 @@ const currentSubtitleLang = ref(null)
 const videoCursor = ref(0)
 const isFullscreen = ref(false);
 const orientation = ref(null)
+const autoHideIntroTitle = ref(false);
 
 const videoElement = defineModel()
 
@@ -211,6 +221,15 @@ watch([props, videoElement], (a) => {
 function onFullscreenChange() {
   isFullscreen.value = !!document.fullscreenElement
   emit('video-fullscreen-change', document.fullscreenElement)
+
+  // hide intro title after x seconds
+  if(isFullscreen.value === true) {
+    setTimeout(() => {
+      autoHideIntroTitle.value = true;
+    }, 5000)
+  } else {
+    autoHideIntroTitle.value = false;
+  }
 };
 
 function onOrientationChange(e) { 
@@ -349,7 +368,23 @@ function changeSpeed(e) {
     position: relative;
     line-height: 0;
   }
-
+  .media-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 9999999;
+    padding: 2rem 5rem;
+  }
+  .is-fullscreen .media-fullscreen-overlay {
+    display: block!important;
+  }
+  .intro-title h2 {
+    font-size: 23px;
+    color: white;
+    opacity: 1;
+  }
   .fullscreen-video .media-container {
   }
   .video-player-theme-container.is-fullscreen {
@@ -362,4 +397,11 @@ function changeSpeed(e) {
     height: 100vh;
     object-fit: cover;
    }
+
+  .auto-hide {
+    opacity: 0;
+    -webkit-transition: opacity 1.5s ease-in-out;
+    -moz-transition: opacity 1.5s ease-in-out;
+    transition: opacity 1.5s ease-in-out;
+  }
 </style>

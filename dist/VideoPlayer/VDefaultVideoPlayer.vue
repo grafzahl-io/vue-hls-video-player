@@ -1,5 +1,6 @@
 <template>
   <BasePlayer
+    :introTitle="introTitle"
     :previewImageLink="previewImageLink"
     :link="link"
     :progress="progress"
@@ -58,6 +59,10 @@ defineProps({
   isFullscreen: {
     type: Boolean,
     default: false
+  },
+  introTitle: {
+    type: String,
+    default: ''
   },
   showTranscriptBlock: {
     type: Boolean,

@@ -5,6 +5,7 @@
     @video-fullscreen-change="onVideoFullScreenChange"
     @video-ended="onVideoEnd"
     @video-fullscreen-action="oVideoFullscreenAction"
+    :introTitle="introTitle"
     :previewImageLink="previewImageLink"
     :showTranscriptBlock="showTranscriptBlock"
     :isFullscreen="isFullscreen"
@@ -68,6 +69,10 @@ defineProps({
   isFullscreen: {
     type: Boolean,
     default: false
+  },
+  introTitle: {
+    type: String,
+    default: ''
   },
   showTranscriptBlock: {
     type: Boolean,

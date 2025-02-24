@@ -405,6 +405,7 @@ function changeSpeed(e) {
   .media-overlay .initial-play media-play-button {
     width: 80px;
     height: 80px;
+    margin-top: 50px;
     border-radius: 10px;
   }
   .media-overlay .initial-play media-play-button svg {

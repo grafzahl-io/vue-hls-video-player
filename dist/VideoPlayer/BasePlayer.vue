@@ -6,6 +6,17 @@
           <h2>{{ introTitle }}</h2>
         </div>
       </div>
+      <div class="media-overlay" v-if="initialPlayButton">
+        <div class="initial-play">
+          <media-play-button mediapaused="" class="media-button" aria-label="play" tabindex="0" role="button" @click="video.play()">
+            <svg slot="icon" viewBox="0 0 32 32">
+              <g>
+                <path id="icon-play" d="M20.7131 14.6976C21.7208 15.2735 21.7208 16.7265 20.7131 17.3024L12.7442 21.856C11.7442 22.4274 10.5 21.7054 10.5 20.5536L10.5 11.4464C10.5 10.2946 11.7442 9.57257 12.7442 10.144L20.7131 14.6976Z"></path>
+              </g>
+            </svg>
+          </media-play-button>
+        </div>
+      </div>
       <slot name="before-media"></slot>
       <media-theme-sutro class="video-player-theme-container" :class="{'is-fullscreen': isFullscreen}">
         <video
@@ -122,6 +133,7 @@ const videoCursor = ref(0)
 const isFullscreen = ref(false);
 const orientation = ref(null)
 const autoHideIntroTitle = ref(false);
+const initialPlayButton = ref(false);
 
 const videoElement = defineModel()
 
@@ -138,6 +150,10 @@ onMounted(() => {
     document.addEventListener('fullscreenchange', onFullscreenChange);
     document.addEventListener('orientationchange', onOrientationChange);
     window.screen.orientation.addEventListener("change", onOrientationChange);
+
+    if(video.value.paused || video.value.currentTime === 0) {
+      initialPlayButton.value = true
+    }
     
     /**
      * detect initial display orientation
@@ -251,6 +267,9 @@ function enterFullscreen(event) {
 
 function updateCurrentTime() {
   videoCursor.value = video.value.currentTime;
+  if(!video.value.paused) {
+    initialPlayButton.value = false;
+  }
 }
 
 function toggleTranscript() {
@@ -367,6 +386,30 @@ function changeSpeed(e) {
   .video-container {
     position: relative;
     line-height: 0;
+  }
+  .media-overlay {
+    position: absolute;
+    height: calc(100% - 50px);
+    top: 0;
+    width: 100%;
+    z-index: 99;
+    background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 100%);
+  }
+  .media-overlay .initial-play {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    height: 100%;
+  }
+  .media-overlay .initial-play media-play-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+  }
+  .media-overlay .initial-play media-play-button svg {
+    width: 100%;
+    height: 100%;
   }
   .media-fullscreen-overlay {
     display: none;

@@ -14,6 +14,7 @@
     :isMuted="isMuted"
     :autoplay="autoplay"
     v-model="videoElement"
+    :hideInitialPlayButton="hideInitialPlayButton"
   >
     <template v-slot:before-media><slot name="before-media"></slot></template>
     <template v-slot:after-media><slot name="after-media"></slot></template>
@@ -77,6 +78,10 @@ defineProps({
   showTranscriptBlock: {
     type: Boolean,
     default: true
+  },
+  hideInitialPlayButton: {
+    type: Boolean,
+    default: false
   }
 })
 

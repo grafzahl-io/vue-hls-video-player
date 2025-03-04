@@ -7,7 +7,7 @@
         </div>
       </div>
       <div class="media-overlay" v-if="initialPlayButton">
-        <div class="initial-play">
+        <div class="initial-play" :class="{'hide-playbutton': hideInitialPlayButton}">
           <media-play-button mediapaused="" class="media-button" aria-label="play" tabindex="0" role="button" @click="video.play()">
             <svg slot="icon" viewBox="0 0 32 32">
               <g>
@@ -122,6 +122,10 @@ const props = defineProps({
   isFullscreen: {
     type: Boolean,
     default: false
+  },
+  hideInitialPlayButton: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -134,6 +138,7 @@ const isFullscreen = ref(false);
 const orientation = ref(null)
 const autoHideIntroTitle = ref(false);
 const initialPlayButton = ref(false);
+const hideInitialPlayButton = ref(false)
 
 const videoElement = defineModel()
 
@@ -153,6 +158,12 @@ onMounted(() => {
 
     if(video.value.paused || video.value.currentTime === 0) {
       initialPlayButton.value = true
+
+      if(props.hideInitialPlayButton) {
+        setTimeout(() => {
+          hideInitialPlayButton.value = true
+        }, 1200)
+      }
     }
     
     /**
@@ -173,24 +184,24 @@ onMounted(() => {
      * to inject own fullscreen logic
      */
     const observer = new MutationObserver((mutationsList, observer) => {
-    const mediaTheme = document.querySelector('.video-player-theme-container');
+      const mediaTheme = document.querySelector('.video-player-theme-container');
 
-    if (mediaTheme && mediaTheme.shadowRoot) {
-      const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
-      if (fullscreenButton) {
-        fullscreenButton.handleClick = async (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          event.stopImmediatePropagation();
-          enterFullscreen(event)
+      if (mediaTheme && mediaTheme.shadowRoot) {
+        const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
+        if (fullscreenButton) {
+          fullscreenButton.handleClick = async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            enterFullscreen(event)
+          }
+          observer.disconnect();
+        } else {
+          console.error('Button not found in Shadow DOM!');
         }
-        observer.disconnect();
       } else {
-        console.error('Button not found in Shadow DOM!');
+        console.error('Shadow Root not found!');
       }
-    } else {
-      console.error('Shadow Root not found!');
-    }
     })
     observer.observe(document.body, { childList: true, subtree: true });
   }
@@ -370,6 +381,7 @@ function changeSpeed(e) {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transform: translate(-50%) translateY(calc(-100% - 60px));
   }
+
   .custom-subtitles .subtitle-text {
     color: white;
     font-size: 14px;
@@ -383,10 +395,15 @@ function changeSpeed(e) {
     height: 100%;
   }
 
+  .video-player-theme-container video {
+    object-fit: cover;
+  }
+
   .video-container {
     position: relative;
     line-height: 0;
   }
+  
   .media-overlay {
     position: absolute;
     height: calc(100% - 50px);
@@ -394,6 +411,9 @@ function changeSpeed(e) {
     width: 100%;
     z-index: 99;
     background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 100%);
+    -webkit-transition: 1.5s ease-in-out;
+    -moz-transition: 1.5s ease-in-out;
+    transition: 1.5s ease-in-out;
   }
   .media-overlay .initial-play {
     display: flex;
@@ -401,6 +421,15 @@ function changeSpeed(e) {
     align-content: center;
     align-items: center;
     height: 100%;
+    -webkit-transition: 0.6s ease-in-out;
+    -moz-transition: 0.6s ease-in-out;
+    transition: 0.6s ease-in-out;
+  }
+  .media-overlay .initial-play.hide-playbutton {
+    opacity: 0;
+  }
+  .vp-vpvideo-block:hover .media-overlay .initial-play.hide-playbutton {
+    opacity: 1;
   }
   .media-overlay .initial-play media-play-button {
     width: 80px;

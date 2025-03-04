@@ -10,6 +10,7 @@
     :onVideoEnd="onVideoEnd"
     :isFullscreen="isFullscreen"
     :showTranscriptBlock="showTranscriptBlock"
+    :hideInitialPlayButton="hideInitialPlayButton"
     @pause="pause"
     @video-ended="onVideoEnd"
     @video-fullscreen-change="onFullscreenChange"
@@ -67,6 +68,10 @@ defineProps({
   showTranscriptBlock: {
     type: Boolean,
     default: true
+  },
+  hideInitialPlayButton: {
+    type: Boolean,
+    default: false
   }
 })
 

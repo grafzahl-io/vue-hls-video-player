@@ -3,13 +3,13 @@
     <div class="transcript-toggle">
       <button data-headlessui-state="open" @click="toggleTranscript()">
         <div class="icon">
-          <svg v-if="!showTranscriptBlock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon duration-200 h-4 w-4 text-gray-900 stroke-1"><path d="m9 18 6-6-6-6"></path></svg>
-          <svg v-if="showTranscriptBlock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon rotate-90 transform duration-200 h-4 w-4 text-gray-900 stroke-1"><path d="m9 18 6-6-6-6"></path></svg>
+          <svg v-if="!toggleTranscriptBlock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon duration-200 h-4 w-4 text-gray-900 stroke-1"><path d="m9 18 6-6-6-6"></path></svg>
+          <svg v-if="toggleTranscriptBlock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon rotate-90 transform duration-200 h-4 w-4 text-gray-900 stroke-1"><path d="m9 18 6-6-6-6"></path></svg>
         </div>
         Transcript
       </button>
     </div>
-    <ul v-if="txtCues.length && showTranscriptBlock" class="subtitles">
+    <ul v-if="txtCues.length && toggleTranscriptBlock" class="subtitles">
       <li
         v-for="(txtCue, index) in txtCues"
         :key="index"
@@ -56,6 +56,7 @@
   border: 1px solid var(--outline-gray-1);
   padding: 10px;
   font-family: Arial, sans-serif;
+  margin-top: 20px;
 }
 
 .subtitles {
@@ -73,6 +74,10 @@
 .subtitles li .play-icon {
   min-width: 24px;
   padding-top: 4px;
+}
+
+.subtitles li .content {
+  max-width: 800px;
 }
 
 .subtitles li .content .meta {
@@ -118,6 +123,10 @@ const props = defineProps({
     default: 0,
   },
   showTranscriptBlock: {
+    type: Boolean,
+    default: true
+  },
+  toggleTranscriptBlock: {
     type: Boolean,
     default: true
   }
@@ -173,7 +182,7 @@ function highlightActiveCue(currentTime) {
 }
 
 function toggleTranscript() {
-  emit('toggleTranscript', null)
+  props.toggleTranscriptBlock = !props.toggleTranscriptBlock
 }
 
 function seekTo(time) {

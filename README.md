@@ -183,6 +183,10 @@ it makes the video muted
 it will set the native <video> autoplay property
 
 ### Last release:
+v1.0.9 - v1.0.14
+- Fixes
+- Small styling improvements
+
 v1.0.9
 - Fix sizes in fullscreen mode for video
 - Hide transcript block completely when hidden

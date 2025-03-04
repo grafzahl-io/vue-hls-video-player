@@ -304,6 +304,9 @@ async function parseTXT(fileUrl) {
 
 // Hilfsfunktionen
 function timeToSeconds(timestamp) {
+  if(!timestamp) {
+    return 0
+  }
   const [hours, minutes, seconds] = timestamp.split(':').map(parseFloat);
   return hours * 3600 + minutes * 60 + seconds;
 }

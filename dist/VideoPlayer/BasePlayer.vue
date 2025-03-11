@@ -188,6 +188,8 @@ onMounted(() => {
 
       if (mediaTheme && mediaTheme.shadowRoot) {
         const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
+        const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
+        playbackRateButton.setAttribute('rates', '0.25 0.5 0.75 1 1.5 2 3');
         if (fullscreenButton) {
           fullscreenButton.handleClick = async (event) => {
             event.preventDefault();

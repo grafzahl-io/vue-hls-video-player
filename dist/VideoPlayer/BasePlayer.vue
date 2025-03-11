@@ -411,7 +411,7 @@ function changeSpeed(e) {
     top: 0;
     width: 100%;
     z-index: 99;
-    background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 100%);
+    background: transparent;
     -webkit-transition: 1.5s ease-in-out;
     -moz-transition: 1.5s ease-in-out;
     transition: 1.5s ease-in-out;

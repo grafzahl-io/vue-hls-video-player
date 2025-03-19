@@ -291,7 +291,7 @@ function toggleTranscript() {
 
 function seekVideo(time) {
   video.value.currentTime = time;
-  video.play()
+  video.value.play()
 }
 
 function prepareVideoPlayer() {

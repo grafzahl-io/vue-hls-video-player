@@ -32,13 +32,13 @@
 <script setup>
 import VDefaultVideoPlayer from './VDefaultVideoPlayer.vue'
 import VPreviewVideoPlayer from './VPreviewVideoPlayer.vue'
-import { ref } from 'vue'
+import { ref, toRef } from 'vue'
 
 const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
 
 const videoElement = ref(null);
 
-defineProps({
+const props = defineProps({
   previewImageLink: {
     type: String,
     default: ''
@@ -84,6 +84,9 @@ defineProps({
     default: false
   }
 })
+
+const link = toRef(props, 'link');
+const previewImageLink = toRef(props, 'previewImageLink');
 
 function pause(currentTime) {
   emit('pause', currentTime)

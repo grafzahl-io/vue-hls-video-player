@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUpdated, ref, onUnmounted, computed, watch } from 'vue'
+import { onMounted, onUpdated, ref, onUnmounted, computed, watch, toRef } from 'vue'
 import Hls from 'hls.js'
 import 'player.style/sutro';
 import SubtitleBlock from './SubtitleBlock.vue';
@@ -139,6 +139,8 @@ const orientation = ref(null)
 const autoHideIntroTitle = ref(false);
 const initialPlayButton = ref(false);
 const hideInitialPlayButton = ref(false)
+const link = toRef(props, 'link');
+const previewImageLink = toRef(props, 'previewImageLink');
 
 const videoElement = defineModel()
 

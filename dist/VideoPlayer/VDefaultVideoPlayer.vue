@@ -14,8 +14,8 @@
     @pause="pause"
     @video-ended="onVideoEnd"
     @video-fullscreen-change="onFullscreenChange"
-    @video-fullscreen-action="oVideoFullscreenAction"
     v-model="videoElement"
+    ref="childRef"
   >
     <template v-slot:before-media><slot name="before-media"></slot></template>
     <template v-slot:after-media><slot name="after-media"></slot></template>
@@ -28,9 +28,10 @@
 import BasePlayer from './BasePlayer.vue'
 import { ref, toRef } from 'vue'
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
 
 const videoElement = ref(null);
+const childRef = ref(null)
 
 const props = defineProps({
   previewImageLink: {
@@ -72,11 +73,17 @@ const props = defineProps({
   hideInitialPlayButton: {
     type: Boolean,
     default: false
+  },
+  fullScreenElement: {
+    type: String,
+    default: 'hls-player-media-container'
   }
 })
 
 const link = toRef(props, 'link');
 const previewImageLink = toRef(props, 'previewImageLink');
+
+defineExpose({ startFullscreen }); 
 
 function pause(currentTime) {
   emit('pause', currentTime)
@@ -91,7 +98,7 @@ function onFullscreenChange(data) {
   emit('video-fullscreen-change', data);
 }
 
-function oVideoFullscreenAction(data) {
-  emit('video-fullscreen-action', data)
+function startFullscreen() {
+  childRef.value.startFullscreen();
 }
 </script>

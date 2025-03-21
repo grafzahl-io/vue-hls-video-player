@@ -73,6 +73,17 @@ For **nuxt 3**, try to wrap this component in ClientOnly, images for previewImag
 </ClientOnly>
 ```
 ### Props:
+**fullScreenElement**:
+1. value: 'hls-player-media-container', type: String
+
+If you need to provide additional UI in fullscreen mode
+you can input a parent wrapper of your player to show
+in fullscreen
+
+```
+fullScreenElement="demo"
+```
+
 **type**: 
 1. value: 'default', type: String
 
@@ -124,17 +135,11 @@ const fullScreenAction = (fullScreenElement) => {
 ```
 
 **@video-fullscreen-action**:
-1. Event, handling the fullscreen action of the player
-@video-fullscreen-action="fullScreenAction"
-```
-const fullScreenAction = (data) => {
-	if(isFullscreen.value) {
-		document.exitFullscreen();
-	} else {
-		document.getElementById("video-container").requestFullscreen()
-	}
-}
-```
+Removed in the 1.1.0 version.
+It caused too much problems with mobile devices.
+Now you can pass the desired element id to open
+fullscreen with prop: fullScreenElement
+
 **showTranscriptBlock**:
 1. value: true or false, type: Boolean
 

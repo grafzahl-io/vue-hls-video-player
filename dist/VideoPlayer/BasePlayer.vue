@@ -22,6 +22,7 @@
         <video
           class="hls-player"
           slot="media"
+          :key="link"
           @pause="pause"
           @keyup="changeSpeed"
           @ended="onVideoEnd"
@@ -127,10 +128,14 @@ const props = defineProps({
   hideInitialPlayButton: {
     type: Boolean,
     default: false
+  },
+  fullScreenElement: {
+    type: String,
+    default: 'hls-player-media-container'
   }
 })
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'video-fullscreen-action'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
@@ -142,6 +147,7 @@ const initialPlayButton = ref(false);
 const hideInitialPlayButton = ref(false)
 const link = toRef(props, 'link');
 const previewImageLink = toRef(props, 'previewImageLink');
+let currentTime = 0
 let hls = new Hls()
 
 const videoElement = defineModel()
@@ -199,7 +205,7 @@ onMounted(() => {
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
-            enterFullscreen(event)
+            startFullscreen();
           }
           observer.disconnect();
         } else {
@@ -251,17 +257,60 @@ watch([props, videoElement], (a) => {
   }
 })
 
-watch(link, (v) => {
-  prepareVideoPlayer();
+watch(link, (newLink, oldLink) => {
+  if (newLink !== oldLink) {
+    prepareVideoPlayer();
+  }
 })
+
+async function startFullscreen() {
+  let vpVideoBlock = document.getElementById(props.fullScreenElement);
+  if(video.value) {
+    currentTime = video.value.currentTime
+  }
+  if (document.fullscreenElement) {
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+    await document.exitFullscreen();
+    isFullscreen.value = false;
+  } else {
+    isFullscreen.value = true;
+    try {
+      if (vpVideoBlock.requestFullscreen) {
+        await vpVideoBlock.requestFullscreen();
+      } else if (vpVideoBlock.webkitRequestFullscreen) {
+        vpVideoBlock = document.querySelector('video');
+        await vpVideoBlock.webkitRequestFullscreen(); // Safari
+      } else if (vpVideoBlock.mozRequestFullScreen) {
+        await vpVideoBlock.mozRequestFullScreen(); // Firefox
+      } else if (vpVideoBlock.msRequestFullscreen) {
+        await vpVideoBlock.msRequestFullscreen(); // IE/Edge
+      }
+
+      if (screen.orientation && screen.orientation.lock) {
+        try {
+          await screen.orientation.lock("landscape");
+        } catch (error) {
+          console.warn("Orientation lock failed", error);
+        }
+      } else {
+        console.warn("Orientation lock not supported.");
+      }
+    } catch (error) {
+      console.error("Fullscreen could not be activated", error);
+      isFullscreen.value = false;
+    }
+    video.value.currentTime = currentTime;
+  }
+}
 
 function onSubtitleError(link) {
   console.error(`Error on loading subtitles: ${link}`);
 }
 
-function onFullscreenChange() {
-  isFullscreen.value = !!document.fullscreenElement
-  emit('video-fullscreen-change', document.fullscreenElement)
+function onFullscreenChange(e) {
+  e.preventDefault();
 
   // hide intro title after x seconds
   if(isFullscreen.value === true) {
@@ -271,6 +320,7 @@ function onFullscreenChange() {
   } else {
     autoHideIntroTitle.value = false;
   }
+  isFullscreen.value = !!document.fullscreenElement;
 };
 
 function onOrientationChange(e) { 
@@ -284,10 +334,17 @@ function onOrientationChange(e) {
   orientation.value = angle === 0 || angle === 180 
     ? "portrait" 
     : "landscape";
-}
 
-function enterFullscreen(event) {
-  emit('video-fullscreen-action', event)
+  let isPortrait = angle === 0 || angle === 180;
+  let isLandscape = angle === 90 || angle === -90;
+
+  if (isFullscreen.value && isPortrait) {
+    setTimeout(async () => {
+      if (!document.fullscreenElement) {
+        startFullscreen();
+      }
+    }, 700);
+  }
 }
 
 function updateCurrentTime() {
@@ -375,6 +432,8 @@ function changeSpeed(e) {
     video.value.playbackRate = video.value.playbackRate - 0.25
   }
 }
+defineExpose({ startFullscreen }); 
+
 </script>
 <style>
   video::cue {

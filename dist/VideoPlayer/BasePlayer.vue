@@ -38,7 +38,6 @@
           :autoplay="autoplay && isMuted"
         >
           <source
-            :src="link"
             type="application/x-mpegURL"
           />
           <track 

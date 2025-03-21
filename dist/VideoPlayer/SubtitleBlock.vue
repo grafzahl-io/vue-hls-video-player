@@ -161,6 +161,7 @@ watch(
 watch(
   () => props.cursor,
   (currentTime) => {
+console.log("cursor watch", currentTime)
     highlightActiveCue(currentTime);
     checkCurrentCue(currentTime)
   }
@@ -207,7 +208,7 @@ function isTxtCueActive(txtCue) {
  * @param txtIndex 
  */
 function isWordActive(txtCue, word, wordIndex, txtIndex) {
-  console.log("check word active ", txtCue, word, wordIndex, txtIndex)
+  console.log("check word active ", txtCue, word, wordIndex, currentCue.value)
   if(!currentCue.value || !word || !txtCue) {
     return false
   }
@@ -222,6 +223,7 @@ function isWordActive(txtCue, word, wordIndex, txtIndex) {
 
 function checkCurrentCue(currentCursor) {
   Array.from(vttCues.value).forEach((a, index) => {
+    console.log("current cue", a)
     if(currentCursor >= a.start && currentCursor <= a.end) {
       currentCue.value = a.text
     }

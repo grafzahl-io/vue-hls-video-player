@@ -148,7 +148,7 @@ const hideInitialPlayButton = ref(false)
 const link = toRef(props, 'link');
 const previewImageLink = toRef(props, 'previewImageLink');
 let currentTime = 0
-let hls = new Hls()
+let hls = null
 
 const videoElement = defineModel()
 
@@ -259,6 +259,7 @@ watch([props, videoElement], (a) => {
 
 watch(link, (newLink, oldLink) => {
   if (newLink !== oldLink) {
+    console.log("prepare new src " + newLink)
     prepareVideoPlayer();
   }
 })
@@ -364,11 +365,15 @@ function seekVideo(time) {
 }
 
 function prepareVideoPlayer() {
-  let stream = props.link
-  hls.loadSource(stream)
-  hls.attachMedia(video.value)
-
   if (video.value) {
+    if (hls) {
+      hls.destroy();
+    }
+    hls = new Hls();
+    let stream = props.link
+    hls.loadSource(stream)
+    hls.attachMedia(video.value)
+
     hls.attachMedia(video.value)
     video.value.muted = props.isMuted
     video.value.currentTime = props.progress

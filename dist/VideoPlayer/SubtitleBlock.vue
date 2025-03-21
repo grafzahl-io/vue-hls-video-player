@@ -207,11 +207,13 @@ function isTxtCueActive(txtCue) {
  * @param txtIndex 
  */
 function isWordActive(txtCue, word, wordIndex, txtIndex) {
+  console.log("check word active ", txtCue, word, wordIndex, txtIndex)
   if(!currentCue.value || !word || !txtCue) {
     return false
   }
   const startPos = txtCue.dialog[0].text.indexOf(currentCue.value)
   const endPos = startPos + currentCue.value.length
+  console.log("can word marked", startPos, endPos, wordIndex)
   if(wordIndex >= startPos && wordIndex < endPos) {
     return true;
   }

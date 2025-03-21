@@ -153,69 +153,6 @@ const videoElement = defineModel()
 
 onMounted(() => {
   prepareVideoPlayer()
-  if (video.value) {
-
-    // pass video element as reference to model
-    if (!videoElement.value) {
-      videoElement.value = video.value;
-    }
-
-    video.value.addEventListener('timeupdate', updateCurrentTime);
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    document.addEventListener('orientationchange', onOrientationChange);
-    window.screen.orientation.addEventListener("change", onOrientationChange);
-
-    if(video.value.paused || video.value.currentTime === 0) {
-      initialPlayButton.value = true
-
-      if(props.hideInitialPlayButton) {
-        setTimeout(() => {
-          hideInitialPlayButton.value = true
-        }, 1200)
-      }
-    }
-    
-    /**
-     * detect initial display orientation
-     */
-    if (typeof window.orientation === "undefined") {
-      orientation.value = window.screen.orientation.angle === 0 || window.screen.orientation.angle === 180 
-        ? "portrait" 
-        : "landscape";
-    } else {
-      orientation.value = window.orientation === 0 || window.orientation === 180 
-        ? "portrait" 
-        : "landscape"; // for safari
-    }
-
-    /**
-     * overwrite player.style video fullscreen button
-     * to inject own fullscreen logic
-     */
-    const observer = new MutationObserver((mutationsList, observer) => {
-      const mediaTheme = document.querySelector('.video-player-theme-container');
-
-      if (mediaTheme && mediaTheme.shadowRoot) {
-        const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
-        const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
-        playbackRateButton.setAttribute('rates', '0.25 0.5 0.75 1 1.5 2 3');
-        if (fullscreenButton) {
-          fullscreenButton.handleClick = async (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            startFullscreen();
-          }
-          observer.disconnect();
-        } else {
-          console.error('Button not found in Shadow DOM!');
-        }
-      } else {
-        console.error('Shadow Root not found!');
-      }
-    })
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
 })
 
 onUpdated(() => {
@@ -373,7 +310,6 @@ function prepareVideoPlayer() {
     hls.loadSource(stream)
     hls.attachMedia(video.value)
 
-    hls.attachMedia(video.value)
     video.value.muted = props.isMuted
     video.value.currentTime = props.progress
 
@@ -415,6 +351,73 @@ function prepareVideoPlayer() {
       });
     }
     setInterval(checkTrackModeChanges, 100);
+    initVideo();
+  }
+}
+
+function initVideo() {
+  if (video.value) {
+
+    // pass video element as reference to model
+    if (!videoElement.value) {
+      videoElement.value = video.value;
+    }
+
+    video.value.addEventListener('timeupdate', updateCurrentTime);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('orientationchange', onOrientationChange);
+    window.screen.orientation.addEventListener("change", onOrientationChange);
+
+    if(video.value.paused || video.value.currentTime === 0) {
+      initialPlayButton.value = true
+
+      if(props.hideInitialPlayButton) {
+        setTimeout(() => {
+          hideInitialPlayButton.value = true
+        }, 1200)
+      }
+    }
+
+    /**
+     * detect initial display orientation
+     */
+    if (typeof window.orientation === "undefined") {
+      orientation.value = window.screen.orientation.angle === 0 || window.screen.orientation.angle === 180 
+        ? "portrait" 
+        : "landscape";
+    } else {
+      orientation.value = window.orientation === 0 || window.orientation === 180 
+        ? "portrait" 
+        : "landscape"; // for safari
+    }
+
+    /**
+     * overwrite player.style video fullscreen button
+     * to inject own fullscreen logic
+     */
+    const observer = new MutationObserver((mutationsList, observer) => {
+      const mediaTheme = document.querySelector('.video-player-theme-container');
+
+      if (mediaTheme && mediaTheme.shadowRoot) {
+        const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
+        const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
+        playbackRateButton.setAttribute('rates', '0.25 0.5 0.75 1 1.5 2 3');
+        if (fullscreenButton) {
+          fullscreenButton.handleClick = async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            startFullscreen();
+          }
+          observer.disconnect();
+        } else {
+          console.error('Button not found in Shadow DOM!');
+        }
+      } else {
+        console.error('Shadow Root not found!');
+      }
+    })
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 }
 

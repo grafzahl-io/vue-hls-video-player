@@ -46,6 +46,7 @@
             :src="subtitle.link"
             kind="subtitles"
             :srclang="subtitle.lang"
+            @error="onSubtitleError(subtitle.link)"
             :label="subtitle.label" :default="i === 0" />
         </video>
       </media-theme-sutro>
@@ -141,6 +142,7 @@ const initialPlayButton = ref(false);
 const hideInitialPlayButton = ref(false)
 const link = toRef(props, 'link');
 const previewImageLink = toRef(props, 'previewImageLink');
+let hls = new Hls()
 
 const videoElement = defineModel()
 
@@ -218,10 +220,10 @@ onUpdated(() => {
 onUnmounted(() => {
   if (video.value) {
     video.value.removeEventListener('timeupdate', updateCurrentTime);
-    document.removeEventListener('fullscreenchange', onFullscreenChange);
-    document.removeEventListener('orientationchange', onOrientationChange);
-    window.screen.orientation.addEventListener("change", onOrientationChange);
   }
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
+  document.removeEventListener('orientationchange', onOrientationChange);
+  window.screen.orientation.removeEventListener("change", onOrientationChange);
 });
 
 const mutedAttr = computed(() => {
@@ -240,14 +242,22 @@ const currentSubtitle = computed(() => {
 })
 
 watch([props, videoElement], (a) => {
-  if(a[0].autoplay && a[1]) {
+  if(a[0].autoplay && a[1] && a[1].paused) {
     // autoplay is only possible when muted
     a[1].muted = true
     setTimeout(() => {
-      a[1].play();
+      a[1].play().catch(err => console.warn("Autoplay-Error:", err));
     }, 200)
   }
 })
+
+watch(link, (v) => {
+  prepareVideoPlayer();
+})
+
+function onSubtitleError(link) {
+  console.error(`Error on loading subtitles: ${link}`);
+}
 
 function onFullscreenChange() {
   isFullscreen.value = !!document.fullscreenElement
@@ -297,9 +307,9 @@ function seekVideo(time) {
 }
 
 function prepareVideoPlayer() {
-  let hls = new Hls()
   let stream = props.link
   hls.loadSource(stream)
+  hls.attachMedia(video.value)
 
   if (video.value) {
     hls.attachMedia(video.value)

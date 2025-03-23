@@ -180,7 +180,6 @@ const currentSubtitle = computed(() => {
         return subt.lang === "en"
       }
     })
-console.log("current", currentSubtitleLang)
     return current.length ? current[0] : null
   }
   return null
@@ -312,26 +311,15 @@ function seekVideo(time) {
 function prepareVideoPlayer(link) {
   let initiallyLoaded = true;
   if (video.value) {
-console.log("start hls gtest2 ", hls)
-    // video.value.src = link;
-    // video.value.load()
-
     if (hls) {
+      hls.detachMedia();
       hls.destroy();
       initiallyLoaded = false;
     }
-console.log("a")
     hls = new Hls();
-console.log("b")
     hls.loadSource(link)
-console.log("c", video.value)
-    // const shadowRoot = video.value?.shadowRoot;
-    // const videoElement = shadowRoot?.querySelector("video");
-    // const videoElement = document.querySelector("video.hls-player")[0]
-    // if(initiallyLoaded) {
-      hls.attachMedia(video.value)
-    // }
-console.log("attach to ", video.value)
+    hls.attachMedia(video.value)
+    hls.recoverMediaError()
 
     video.value.muted = props.isMuted
     video.value.currentTime = props.progress
@@ -373,10 +361,8 @@ console.log("attach to ", video.value)
         }
       });
     }
-    // if(!initiallyLoaded) {
-      setInterval(checkTrackModeChanges, 100);
-      initVideo();
-    // }
+    setInterval(checkTrackModeChanges, 100);
+    initVideo();
   }
 }
 

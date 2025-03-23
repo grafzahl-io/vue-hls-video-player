@@ -111,7 +111,7 @@
 </style>
 
 <script setup>
-import { onMounted, watch, ref } from 'vue';
+import { onMounted, watch, ref, nextTick } from 'vue';
 
 const props = defineProps({
   subtitle: {
@@ -137,11 +137,11 @@ const subtitlesContainer = ref(null);
 const vttCues = ref([]);
 const txtCues = ref([]);
 const currentCue = ref(null);
+const videoCursor = ref(0);
 
 
 const loadCues = async () => {
   if (props.subtitle) {
-console.log("load subtittles", props.subtitle.link)
     const vttPath = props.subtitle.link;
     const txtPath = vttPath.replace(/\.vtt$/, '.txt');
     vttCues.value = await parseVTT(vttPath);
@@ -159,8 +159,9 @@ watch(
 );
 
 const onTimeUpdate = (video) => {
-  if (video) {
+  if (video && txtCues?.value?.length && vttCues?.value?.length) {
     const currentTime = video.currentTime;
+    videoCursor.value = currentTime;
     props.cursor = currentTime;
     highlightActiveCue(currentTime);
     checkCurrentCue(currentTime);
@@ -196,7 +197,7 @@ function seekTo(time) {
  * @param txtCue 
  */
 function isTxtCueActive(txtCue) {
-  return props.cursor >= txtCue.start && props.cursor <= txtCue.end;
+  return videoCursor.value >= txtCue.start && videoCursor.value <= txtCue.end;
 }
 
 /**
@@ -219,10 +220,11 @@ function isWordActive(txtCue, word, wordIndex, txtIndex, currentCue) {
   return false;
 }
 
-function checkCurrentCue(currentCursor) {
-  Array.from(vttCues.value).forEach((a, index) => {
-    if(currentCursor >= a.start && currentCursor <= a.end) {
+async function checkCurrentCue(currentCursor) {
+  Array.from(vttCues.value).forEach(async (a, index) => {
+    if(videoCursor.value >= a.start && videoCursor.value <= a.end) {
       currentCue.value = a.text
+      await nextTick()
     }
   });
 }
@@ -236,7 +238,7 @@ async function parseVTT(fileUrl) {
   const response = await fetch(fileUrl);
   const text = await response.text();
   const cues = [];
-  const lines = text.split('\n');
+  const lines = text.replace(/\r/g, '').split('\n');
   let cue = null;
 
   for (let i = 0; i < lines.length; i++) {

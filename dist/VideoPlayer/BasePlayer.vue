@@ -58,6 +58,7 @@
   </div>
   <slot name="before-transcripts"></slot>
   <SubtitleBlock
+    ref="transcriptRef"
     :subtitle="currentSubtitle"
     :cursor="videoCursor" 
     :showTranscriptBlock="showTranscriptBlock"
@@ -144,6 +145,7 @@ const orientation = ref(null)
 const autoHideIntroTitle = ref(false);
 const initialPlayButton = ref(false);
 const hideInitialPlayButton = ref(false)
+const transcriptRef = ref(null)
 const link = toRef(props, 'link');
 const previewImageLink = toRef(props, 'previewImageLink');
 let currentTime = 0
@@ -288,6 +290,11 @@ function updateCurrentTime() {
   videoCursor.value = video.value.currentTime;
   if(!video.value.paused) {
     initialPlayButton.value = false;
+  }
+
+  // update transcripts
+  if(transcriptRef && video) {
+    transcriptRef.value.onTimeUpdate(video.value)
   }
 }
 

@@ -143,7 +143,6 @@ const loadCues = async () => {
   if (props.subtitle) {
     const vttPath = props.subtitle.link;
     const txtPath = vttPath.replace(/\.vtt$/, '.txt');
-
     vttCues.value = await parseVTT(vttPath);
     txtCues.value = await parseTXT(txtPath);
   }
@@ -158,14 +157,14 @@ watch(
   }
 );
 
-watch(
-  () => props.cursor,
-  (currentTime) => {
-console.log("cursor watch", currentTime)
+const onTimeUpdate = (video) => {
+  if (video) {
+    const currentTime = video.currentTime;
+    props.cursor = currentTime;
     highlightActiveCue(currentTime);
-    checkCurrentCue(currentTime)
+    checkCurrentCue(currentTime);
   }
-);
+};
 
 /**
  * highlgiht the current transcript part
@@ -223,7 +222,6 @@ function isWordActive(txtCue, word, wordIndex, txtIndex) {
 
 function checkCurrentCue(currentCursor) {
   Array.from(vttCues.value).forEach((a, index) => {
-    console.log("current cue", a)
     if(currentCursor >= a.start && currentCursor <= a.end) {
       currentCue.value = a.text
     }
@@ -322,4 +320,6 @@ function secondsToTime(seconds) {
   const pad = (num) => String(num).padStart(2, '0');
   return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
 }
+
+defineExpose({ onTimeUpdate }); 
 </script>

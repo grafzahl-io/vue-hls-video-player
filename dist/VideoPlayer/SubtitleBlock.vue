@@ -28,7 +28,7 @@
             <span
               v-for="(word, wordIndex) in txtCue.dialog[0].text.split('')"
               :key="wordIndex"
-              :class="{ 'active-word': isWordActive(txtCue, word, wordIndex, index) && isTxtCueActive(txtCue) }"
+              :class="{ 'active-word': isWordActive(txtCue, word, wordIndex, index, currentCue) && isTxtCueActive(txtCue) }"
             >
               {{ word }}
             </span>
@@ -141,6 +141,7 @@ const currentCue = ref(null);
 
 const loadCues = async () => {
   if (props.subtitle) {
+console.log("load subtittles", props.subtitle.link)
     const vttPath = props.subtitle.link;
     const txtPath = vttPath.replace(/\.vtt$/, '.txt');
     vttCues.value = await parseVTT(vttPath);
@@ -206,14 +207,12 @@ function isTxtCueActive(txtCue) {
  * @param wordIndex 
  * @param txtIndex 
  */
-function isWordActive(txtCue, word, wordIndex, txtIndex) {
-  console.log("check word active ", txtCue, word, wordIndex, currentCue.value)
-  if(!currentCue.value || !word || !txtCue) {
+function isWordActive(txtCue, word, wordIndex, txtIndex, currentCue) {
+  if(!currentCue || !word || !txtCue) {
     return false
   }
-  const startPos = txtCue.dialog[0].text.indexOf(currentCue.value)
-  const endPos = startPos + currentCue.value.length
-  console.log("can word marked", startPos, endPos, wordIndex)
+  const startPos = txtCue.dialog[0].text.indexOf(currentCue)
+  const endPos = startPos + currentCue.length
   if(wordIndex >= startPos && wordIndex < endPos) {
     return true;
   }

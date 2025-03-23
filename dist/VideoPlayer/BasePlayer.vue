@@ -144,21 +144,17 @@ const isFullscreen = ref(false);
 const orientation = ref(null)
 const autoHideIntroTitle = ref(false);
 const initialPlayButton = ref(false);
-const hideInitialPlayButton = ref(false)
-const transcriptRef = ref(null)
-const link = toRef(props, 'link');
+const hideInitialPlayButton = ref(false);
+const transcriptRef = ref(null);
 const previewImageLink = toRef(props, 'previewImageLink');
+const link = toRef(props, 'link');
 let currentTime = 0
 let hls = null
 
 const videoElement = defineModel()
 
 onMounted(() => {
-  prepareVideoPlayer()
-})
-
-onUpdated(() => {
-
+  prepareVideoPlayer(props.link)
 })
 
 onUnmounted(() => {
@@ -178,8 +174,13 @@ const mutedAttr = computed(() => {
 const currentSubtitle = computed(() => {
   if(props.subtitles) {
     const current = props.subtitles.filter((subt) => {
-      return subt.lang === currentSubtitleLang.value
+      if(currentSubtitleLang.value) {
+        return subt.lang === currentSubtitleLang.value
+      } else {
+        return subt.lang === "en"
+      }
     })
+console.log("current", currentSubtitleLang)
     return current.length ? current[0] : null
   }
   return null
@@ -195,10 +196,11 @@ watch([props, videoElement], (a) => {
   }
 })
 
-watch(link, (newLink, oldLink) => {
+watch(
+  () => props.link,
+  (newLink, oldLink) => {
   if (newLink !== oldLink) {
-    console.log("prepare new src " + newLink)
-    prepareVideoPlayer();
+    prepareVideoPlayer(newLink);
   }
 })
 
@@ -307,15 +309,29 @@ function seekVideo(time) {
   video.value.play()
 }
 
-function prepareVideoPlayer() {
+function prepareVideoPlayer(link) {
+  let initiallyLoaded = true;
   if (video.value) {
+console.log("start hls gtest2 ", hls)
+    // video.value.src = link;
+    // video.value.load()
+
     if (hls) {
       hls.destroy();
+      initiallyLoaded = false;
     }
+console.log("a")
     hls = new Hls();
-    let stream = props.link
-    hls.loadSource(stream)
-    hls.attachMedia(video.value)
+console.log("b")
+    hls.loadSource(link)
+console.log("c", video.value)
+    // const shadowRoot = video.value?.shadowRoot;
+    // const videoElement = shadowRoot?.querySelector("video");
+    // const videoElement = document.querySelector("video.hls-player")[0]
+    // if(initiallyLoaded) {
+      hls.attachMedia(video.value)
+    // }
+console.log("attach to ", video.value)
 
     video.value.muted = props.isMuted
     video.value.currentTime = props.progress
@@ -357,8 +373,10 @@ function prepareVideoPlayer() {
         }
       });
     }
-    setInterval(checkTrackModeChanges, 100);
-    initVideo();
+    // if(!initiallyLoaded) {
+      setInterval(checkTrackModeChanges, 100);
+      initVideo();
+    // }
   }
 }
 

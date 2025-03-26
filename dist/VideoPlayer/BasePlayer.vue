@@ -213,15 +213,22 @@ async function startFullscreen() {
       screen.orientation.unlock();
     }
     await document.exitFullscreen();
+    if (/iPhone|iPad|AppleWebKit/i.test(navigator.userAgent)) {
+      vpVideoBlock = document.querySelector('video');
+      vpVideoBlock.addAttribute("playsinline");
+      vpVideoBlock.addAttribute("webkit-playsinline");
+    } 
     isFullscreen.value = false;
   } else {
     isFullscreen.value = true;
     try {
       if (vpVideoBlock.requestFullscreen) {
         await vpVideoBlock.requestFullscreen();
-      } else if (document.querySelector('video').webkitRequestFullscreen) {
+      } else if (/iPhone|iPad|AppleWebKit/i.test(navigator.userAgent)) {
         vpVideoBlock = document.querySelector('video');
-        await vpVideoBlock.webkitRequestFullscreen(); // Safari
+        vpVideoBlock.removeAttribute("playsinline");
+        vpVideoBlock.removeAttribute("webkit-playsinline");
+        await vpVideoBlock.webkitRequestFullscreen(); // iOS snot
       } else if (vpVideoBlock.mozRequestFullScreen) {
         await vpVideoBlock.mozRequestFullScreen(); // Firefox
       } else if (vpVideoBlock.msRequestFullscreen) {

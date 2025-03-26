@@ -219,7 +219,7 @@ async function startFullscreen() {
     try {
       if (vpVideoBlock.requestFullscreen) {
         await vpVideoBlock.requestFullscreen();
-      } else if (vpVideoBlock.webkitRequestFullscreen) {
+      } else if (document.querySelector('video').webkitRequestFullscreen) {
         vpVideoBlock = document.querySelector('video');
         await vpVideoBlock.webkitRequestFullscreen(); // Safari
       } else if (vpVideoBlock.mozRequestFullScreen) {
@@ -227,7 +227,6 @@ async function startFullscreen() {
       } else if (vpVideoBlock.msRequestFullscreen) {
         await vpVideoBlock.msRequestFullscreen(); // IE/Edge
       }
-
       if (screen.orientation && screen.orientation.lock) {
         try {
           await screen.orientation.lock("landscape");
@@ -241,6 +240,7 @@ async function startFullscreen() {
       console.error("Fullscreen could not be activated", error);
       isFullscreen.value = false;
     }
+
     video.value.currentTime = currentTime;
   }
 }
@@ -251,7 +251,6 @@ function onSubtitleError(link) {
 
 function onFullscreenChange(e) {
   e.preventDefault();
-
   // hide intro title after x seconds
   if(isFullscreen.value === true) {
     setTimeout(() => {
@@ -278,7 +277,7 @@ function onOrientationChange(e) {
   let isPortrait = angle === 0 || angle === 180;
   let isLandscape = angle === 90 || angle === -90;
 
-  if (isFullscreen.value && isPortrait) {
+  if (document.fullscreenElement && isPortrait) {
     setTimeout(async () => {
       if (!document.fullscreenElement) {
         startFullscreen();

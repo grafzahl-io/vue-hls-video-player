@@ -418,7 +418,6 @@ function initVideo() {
      */
     const observer = new MutationObserver((mutationsList, observer) => {
       const mediaTheme = document.querySelector('.video-player-theme-container');
-
       if (mediaTheme && mediaTheme.shadowRoot) {
         const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
         const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
@@ -469,6 +468,9 @@ defineExpose({ startFullscreen });
     text-indent: -999%;
     color: transparent;
     background-color: transparent;
+    text-shadow: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
   }
 
   .custom-subtitles {

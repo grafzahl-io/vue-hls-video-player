@@ -77,6 +77,10 @@ const props = defineProps({
   fullScreenElement: {
     type: String,
     default: 'hls-player-media-container'
+  },
+  options: {
+    type: Object,
+    default: {}
   }
 })
 

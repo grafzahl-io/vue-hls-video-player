@@ -19,6 +19,7 @@
       </div>
       <slot name="before-media"></slot>
       <media-theme-sutro class="video-player-theme-container" :class="{'is-fullscreen': isFullscreen}">
+
         <video
           class="hls-player"
           slot="media"
@@ -49,6 +50,16 @@
             @error="onSubtitleError(subtitle.link)"
             :label="subtitle.label" :default="i === 0" />
         </video>
+        <media-control-bar>
+          <media-fullscreen-button>
+            <span slot="tooltip-enter" v-if="options?.ui?.labels?.fullscreen">
+              {{ options.ui.labels.fullscreen }}
+            </span>
+            <span slot="tooltip-exit" v-if="options?.ui?.labels?.exitFullscreen">
+              {{ options.ui.labels.exitFullscreen }}
+            </span>
+          </media-fullscreen-button>
+        </media-control-bar>
       </media-theme-sutro>
       <div class="custom-subtitles" v-show="(isFullscreen) || (!showTranscriptBlock)">
         <div class="subtitle-text" ref="subtitlesContainer" style="display: none;"></div>
@@ -60,7 +71,8 @@
   <SubtitleBlock
     ref="transcriptRef"
     :subtitle="currentSubtitle"
-    :cursor="videoCursor" 
+    :cursor="videoCursor"
+    :options="options"
     :showTranscriptBlock="showTranscriptBlock"
     @seek="seekVideo"
     @toggleTranscript="toggleTranscript">
@@ -132,6 +144,10 @@ const props = defineProps({
   fullScreenElement: {
     type: String,
     default: 'hls-player-media-container'
+  },
+  options: {
+    type: Object,
+    default: {}
   }
 })
 
@@ -150,6 +166,7 @@ const previewImageLink = toRef(props, 'previewImageLink');
 const link = toRef(props, 'link');
 let currentTime = 0
 let hls = null
+let buttonElement = null
 
 const videoElement = defineModel()
 
@@ -217,9 +234,49 @@ async function startFullscreen() {
       document.webkitExitFullscreen();
     } 
     isFullscreen.value = false;
+    buttonElement.setAttribute('aria-label', "Enter fullscreen mode")
+    const tooltip = buttonElement.querySelector('media-tooltip');
+
+    if (tooltip) {
+      console.log("Tooltip gefunden:", tooltip);
+
+      // Slots für Tooltip-Enter und Tooltip-Exit finden
+      const enterTooltip = tooltip.querySelector('slot[name="tooltip-enter"]');
+      const exitTooltip = tooltip.querySelector('slot[name="tooltip-exit"]');
+
+      if (enterTooltip && exitTooltip) {
+        enterTooltip.style.display = 'block';
+        exitTooltip.style.display = 'none';
+      } else {
+        console.warn("Tooltip-Slots nicht gefunden!");
+      }
+    } else {
+      console.warn("Kein media-tooltip gefunden!");
+    }
   } else {
     isFullscreen.value = true;
     try {
+      buttonElement.setAttribute('aria-label', "Exit fullscreen mode")
+
+      const tooltip = buttonElement.querySelector('media-tooltip');
+
+      if (tooltip) {
+        console.log("Tooltip gefunden:", tooltip);
+
+        // Slots für Tooltip-Enter und Tooltip-Exit finden
+        const enterTooltip = tooltip.querySelector('slot[name="tooltip-enter"]');
+        const exitTooltip = tooltip.querySelector('slot[name="tooltip-exit"]');
+
+        if (enterTooltip && exitTooltip) {
+          enterTooltip.style.display = 'none';
+          exitTooltip.style.display = 'block';
+        } else {
+          console.warn("Tooltip-Slots nicht gefunden!");
+        }
+      } else {
+        console.warn("Kein media-tooltip gefunden!");
+      }
+
       if (vpVideoBlock.requestFullscreen) {
         await vpVideoBlock.requestFullscreen();
       } else if (/iPhone|iPad|AppleWebKit/i.test(navigator.userAgent)) {
@@ -420,6 +477,7 @@ function initVideo() {
       const mediaTheme = document.querySelector('.video-player-theme-container');
       if (mediaTheme && mediaTheme.shadowRoot) {
         const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
+        buttonElement = fullscreenButton
         const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
         playbackRateButton.setAttribute('rates', '0.25 0.5 0.75 1 1.5 2 3');
         if (fullscreenButton) {

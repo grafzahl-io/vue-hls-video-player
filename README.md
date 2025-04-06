@@ -187,7 +187,33 @@ it makes the video muted
 
 it will set the native <video> autoplay property
 
+**options**
+1. value: object with settings, type Object
+
+It contains various options to customize
+the player.
+At the moment the following attribute are supported:
+```
+  ui: {
+    labels: {
+      play: 'Play',
+      pause: 'Pause',
+      fullscreen: 'Toggle fullscreen',
+      exitFullscreen: 'Toggle fullscreen',
+      mute: 'Mute',
+      unmute: 'Unmute',
+    }
+  }
+```
+
 ### Last release:
+v1.0.14 - v1.1.11
+- Fixes
+- iOS specific improvements
+- New Options to customize the component
+- Fix problem with not updating transcript highlighting
+- Extending overloaded functions for fullscreen mode (WIP)
+
 v1.0.9 - v1.0.14
 - Fixes
 - Small styling improvements

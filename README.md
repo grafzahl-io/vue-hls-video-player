@@ -207,6 +207,9 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.0.13
+- update the hls.js package
+
 v1.0.12
 - added component property to make it easier adding headers (like Authorization header into every hls request)
 

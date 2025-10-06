@@ -119,7 +119,7 @@ const props = defineProps({
   additionHeaders: {
     type: Object,
     default: {}
-  }
+  },
   /**
    * array of object, for
    * subtitles to append:

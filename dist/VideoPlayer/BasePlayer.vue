@@ -400,7 +400,7 @@ function prepareVideoPlayer(link) {
         init = init || {};
         init.headers = new Headers(init.headers || {});
         // set headers
-        for (const [key, value] of Object.entries(props.headers)) {
+        for (const [key, value] of Object.entries(props.additionHeaders)) {
           init.headers.set(key, value);
         }
         return new Request(context.url, init);

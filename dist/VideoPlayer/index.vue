@@ -4,6 +4,7 @@
     @pause="pause"
     @video-fullscreen-change="onVideoFullScreenChange"
     @video-ended="onVideoEnd"
+    :additionHeaders="additionHeaders"
     :introTitle="introTitle"
     :previewImageLink="previewImageLink"
     :showTranscriptBlock="showTranscriptBlock"
@@ -89,6 +90,10 @@ const props = defineProps({
     default: 'hls-player-media-container'
   },
   options: {
+    type: Object,
+    default: {}
+  },
+  additionHeaders: {
     type: Object,
     default: {}
   }

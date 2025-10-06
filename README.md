@@ -207,6 +207,9 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.0.12
+- added component property to make it easier adding headers (like Authorization header into every hls request)
+
 v1.0.14 - v1.1.11
 - Fixes
 - iOS specific improvements

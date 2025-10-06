@@ -8,6 +8,7 @@
     :autoplay="autoplay"
     :isControls="isControls"
     :onVideoEnd="onVideoEnd"
+    :additionHeaders="additionHeaders"
     :isFullscreen="isFullscreen"
     :showTranscriptBlock="showTranscriptBlock"
     :hideInitialPlayButton="hideInitialPlayButton"
@@ -79,6 +80,10 @@ const props = defineProps({
     default: 'hls-player-media-container'
   },
   options: {
+    type: Object,
+    default: {}
+  },
+  additionHeaders: {
     type: Object,
     default: {}
   }

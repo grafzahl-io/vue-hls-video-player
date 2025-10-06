@@ -116,6 +116,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  additionHeaders: {
+    type: Object,
+    default: {}
+  }
   /**
    * array of object, for
    * subtitles to append:
@@ -387,6 +391,21 @@ function prepareVideoPlayer(link) {
     hls.loadSource(link)
     hls.attachMedia(video.value)
     hls.recoverMediaError()
+
+    if(props.additionHeaders) {
+      /**
+       * inject additional headers
+       */
+      hls.config.fetchSetup = async (context, init) => {
+        init = init || {};
+        init.headers = new Headers(init.headers || {});
+        // set headers
+        for (const [key, value] of Object.entries(props.headers)) {
+          init.headers.set(key, value);
+        }
+        return new Request(context.url, init);
+      };
+    }
 
     video.value.muted = props.isMuted
     video.value.currentTime = props.progress

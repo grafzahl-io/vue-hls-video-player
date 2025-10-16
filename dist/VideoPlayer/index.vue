@@ -16,6 +16,7 @@
     v-model="videoElement"
     ref="childRef"
     :hideInitialPlayButton="hideInitialPlayButton"
+    :options = options
   >
     <template v-slot:before-media><slot name="before-media"></slot></template>
     <template v-slot:after-media><slot name="after-media"></slot></template>

@@ -207,11 +207,14 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
-v1.0.13 - v1.0.15
+v1.1.16
+- Add the options prop to both index.vue and VpDefaultVideoPlayer.vue to pass fullscreen label settings to the BasePlayer component.
+- Update fullscreen toggle logic: adjust aria-label, add or remove mediaIsFullscreen attribute, and safely access media-tooltip via shadowRoot to ensure proper icon and tooltip state handling.
+v1.1.13 - v1.0.15
 - Update the hls.js package
 - Fixes
 
-v1.0.12
+v1.1.12
 - added component property to make it easier adding headers (like Authorization header into every hls request)
 
 v1.0.14 - v1.1.11

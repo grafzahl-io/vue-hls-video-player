@@ -1,5 +1,6 @@
 <template>
   <BasePlayer
+    :options="options"
     :introTitle="introTitle"
     :previewImageLink="previewImageLink"
     :link="link"

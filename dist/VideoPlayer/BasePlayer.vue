@@ -239,8 +239,8 @@ async function startFullscreen() {
     } 
     isFullscreen.value = false;
     buttonElement.setAttribute('aria-label', "Enter fullscreen mode")
-    const tooltip = buttonElement.querySelector('media-tooltip');
-
+    buttonElement.removeAttribute('mediaIsFullscreen');
+    const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip');
     if (tooltip) {
       console.log("Tooltip gefunden:", tooltip);
 
@@ -261,9 +261,8 @@ async function startFullscreen() {
     isFullscreen.value = true;
     try {
       buttonElement.setAttribute('aria-label', "Exit fullscreen mode")
-
-      const tooltip = buttonElement.querySelector('media-tooltip');
-
+      buttonElement.setAttribute('mediaIsFullscreen', '');
+      const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip');
       if (tooltip) {
         console.log("Tooltip gefunden:", tooltip);
 

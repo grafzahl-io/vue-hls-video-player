@@ -143,7 +143,7 @@ const videoCursor = ref(0);
 const loadCues = async () => {
   if (props.subtitle) {
     const vttPath = props.subtitle.link;
-    const txtPath = vttPath.replace(/\.vtt$/, '.txt');
+    const txtPath = vttPath.replace(/\.vtt(?=\?|$)/, '.txt');
     vttCues.value = await parseVTT(vttPath);
     txtCues.value = await parseTXT(txtPath);
   }

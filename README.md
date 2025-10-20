@@ -207,10 +207,12 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.17
+- Keep query params for transcription when getting from .vtt file to .txt
 v1.1.16
 - Add the options prop to both index.vue and VpDefaultVideoPlayer.vue to pass fullscreen label settings to the BasePlayer component.
 - Update fullscreen toggle logic: adjust aria-label, add or remove mediaIsFullscreen attribute, and safely access media-tooltip via shadowRoot to ensure proper icon and tooltip state handling.
-v1.1.13 - v1.0.15
+v1.1.13 - v1.1.15
 - Update the hls.js package
 - Fixes
 

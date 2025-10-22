@@ -67,6 +67,7 @@
       <slot name="after-media"></slot>
     </div>
   </div>
+  <slot name="between-video-and-transcript"></slot> 
   <slot name="before-transcripts"></slot>
   <SubtitleBlock
     ref="transcriptRef"
@@ -155,7 +156,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'pointer-update'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
@@ -172,6 +173,19 @@ let currentTime = 0
 let hls = null
 let buttonElement = null
 
+// --- Frame Pointer Loop ---
+let rafId = null
+const FPS = 30
+
+function emitPointerUpdate() {
+  if (video.value) {
+    const t = video.value.currentTime || 0
+    const frame = Math.floor(t * FPS)
+    emit('pointer-update', { currentTime: t, frame })
+  }
+  rafId = requestAnimationFrame(emitPointerUpdate)
+}
+
 const videoElement = defineModel()
 
 onMounted(() => {
@@ -185,6 +199,8 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', onFullscreenChange);
   document.removeEventListener('orientationchange', onOrientationChange);
   window.screen.orientation.removeEventListener("change", onOrientationChange);
+  // --- Stop pointer-update loop ---
+  if (rafId) cancelAnimationFrame(rafId)
 });
 
 const mutedAttr = computed(() => {
@@ -516,6 +532,10 @@ function initVideo() {
         console.error('Shadow Root not found!');
       }
     })
+    // --- Start pointer-update loop ---
+    if (!rafId) {
+      emitPointerUpdate()
+    }
     observer.observe(document.body, { childList: true, subtree: true });
   }
 }

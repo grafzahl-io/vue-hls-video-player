@@ -21,6 +21,7 @@
   >
     <template v-slot:before-media><slot name="before-media"></slot></template>
     <template v-slot:after-media><slot name="after-media"></slot></template>
+    <template v-slot:between-video-and-transcript><slot name="between-video-and-transcript"></slot></template>
     <template v-slot:before-transcripts><slot name="before-transcripts"></slot></template>
     <template v-slot:after-transcripts><slot name="after-transcripts"></slot></template>
   </BasePlayer>

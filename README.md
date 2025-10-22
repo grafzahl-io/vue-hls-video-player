@@ -207,6 +207,11 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.17
+- Added new slot `between-video-and-transcript` to `BasePlayer.vue`, `VDefaultVideoPlayer.vue` and `index.vue`
+to allow injection of custom UI between video and transcript.
+- Introduced a continuous **Frame Pointer Loop** that emits a `pointer-update` event with the current playback time and calculated frame number (30 fps) for real-time frame tracking.
+
 v1.1.16
 - Add the options prop to both index.vue and VpDefaultVideoPlayer.vue to pass fullscreen label settings to the BasePlayer component.
 - Update fullscreen toggle logic: adjust aria-label, add or remove mediaIsFullscreen attribute, and safely access media-tooltip via shadowRoot to ensure proper icon and tooltip state handling.

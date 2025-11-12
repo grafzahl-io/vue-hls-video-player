@@ -78,6 +78,8 @@
 
 .subtitles li .content {
   max-width: 800px;
+  display: flex;
+  flex-direction: column;
 }
 
 .subtitles li .content .meta {

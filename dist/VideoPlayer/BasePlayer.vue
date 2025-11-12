@@ -674,14 +674,12 @@ function initVideo() {
             langDiv.className = 'lang-switcher';
             langDiv.innerHTML = `
               <style>
-                /* Language Switcher aligned with native media settings */
                 .lang-switcher {
                   position: relative;
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  margin-left: 6px;
-                  transform: translateY(1px); /* align with settings icon */
+                  margin-left: var(--media-control-spacing, 6px);
                 }
 
                 .lang-switcher button {
@@ -690,61 +688,68 @@ function initVideo() {
                   align-items: center;
                   justify-content: center;
                   cursor: pointer;
-                  width: 34px;
-                  height: 32px;
-                  border-radius: 8px;
+                  height: var(--media-button-height, 32px);
+                  border-radius: 25%;
+                  min-width: var(--media-button-height, 32px);
+                  padding: var(--media-button-padding, 0 5px);
                   background: transparent;
                   transition: background 0.15s ease, transform 0.1s ease;
                 }
 
-                .lang-switcher button:hover {
-                  background: rgba(20, 20, 20, 0.25);
-                  transform: scale(0.98);
-                }
-                
-                .lang-btn[title]:hover::after {
-                  content: attr(title);
-                  position: absolute;
-                  bottom: 140%;
-                  right: 0;
-                  white-space: nowrap;
-                  background-color: rgba(20, 20, 20, 0.28);
-                  border-radius: 4px;
-                  padding: 1px 5px;
-                  font-size: 11px;
-                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-                  z-index: 10000;
-                }
                 .lang-switcher button svg {
-                  width: 26px;
-                  height: 26px;
-                  color: white;
-                  stroke: white;
-                  opacity: 0.9;
+                  width: var(--media-icon-size, 24px);
+                  height: var(--media-icon-size, 24px);
+                  color: var(--media-icon-color, white);
+                  stroke: currentColor;
+                  opacity: var(--media-icon-opacity, 0.9);
                   pointer-events: none;
                   transition: opacity 0.15s ease;
                 }
 
                 .lang-switcher button:hover svg {
-                  opacity: 1;
+                  transform: scale(1.1);
                 }
 
-                /* Menu styled like Chrome media settings panel */
+                .lang-switcher button:hover {
+                  opacity: var(--media-icon-opacity-hover, 1);
+                  background: var(--media-control-hover-background, rgba(50 50 70 / .7));
+                  transition: backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
+                  box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
+                  backdrop-filter: blur(10px) invert(15%) brightness(80%) opacity(1);
+                  padding: 5px;
+                  color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+                }
+
+                .lang-btn[title]:hover::after {
+                  content: attr(title);
+                  position: fixed;
+                  bottom: 122%;
+                  right: -100%;
+                  white-space: nowrap;
+                  background: var(--media-tooltip-background, rgba(0,0,0,0.2));
+                  color: var(--media-tooltip-color, #fff);
+                  border-radius: 4px;
+                  padding: 4px 15px;
+                  font-size: var(--media-font-size, 12px);
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                  line-height: calc(1.2 * var(--base));
+                }
+
                 .lang-menu {
                   position: absolute;
-                  bottom: 48px;
-                  right: -51px;
-                  background: rgba(20, 20, 20, 0.58);
+                  bottom: calc(var(--media-button-height, 32px) + 12px);
+                  right: 0;
+                  background: var(--media-control-bar-background, rgba(20,20,20,0.4));
                   backdrop-filter: blur(12px);
                   border-radius: 12px;
-                  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+                  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
                   padding: 10px;
-                  min-width: 280px;
+                  min-width: 240px;
                   display: none;
                   animation: fadeUp 0.15s ease-out;
-                  color: #fff;
-                  font-family: system-ui, sans-serif;
-                  font-size: 13px;
+                  color: var(--media-text-color, #fff);
+                  font-family: var(--media-font-family, system-ui, sans-serif);
+                  font-size: var(--media-font-size, 13px);
                   z-index: 9999;
                 }
 
@@ -756,46 +761,53 @@ function initVideo() {
                 .lang-columns {
                   display: flex;
                   justify-content: space-between;
-                  gap: 18px;
-                  width: 100%;
+                  gap: 1rem;
                 }
 
                 .lang-col {
+                  flex: 1;
                   display: flex;
                   flex-direction: column;
-                  flex: 1;
-                  padding: 0;
                   margin: 0;
-                  align-items: stretch;
+                  padding: 0;
                 }
 
                 .lang-col .title {
                   font-weight: 600;
-                  font-size: 12px;
+                  font-size: calc(var(--media-font-size, 13px) - 1px);
                   opacity: 0.7;
-                  margin-bottom: 2px;
-                  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                  margin-bottom: 4px;
+                  border-bottom: 1px solid rgba(255,255,255,0.1);
                   padding-bottom: 2px;
-                  text-transform: uppercase;
+                }
+
+                .lang-col ul {
+                  list-style: none;
+                  margin: 0;
+                  padding: 0;
                 }
 
                 .lang-col li {
-                  list-style: none;
                   display: flex;
                   align-items: center;
                   justify-content: space-between;
                   cursor: pointer;
                   border-radius: 4px;
+                  padding: 2px 12px;
                   transition: background 0.15s ease, color 0.15s ease;
+                }
+                
+                .lang-col li span {
+                  line-height: calc(1.2 * var(--base));
                 }
 
                 .lang-col li:hover {
-                  background: #ffffff;
-                  color: #000;
+                  background: var(--media-control-hover-background, rgba(255,255,255,0.15));
                 }
 
                 .lang-col li.active {
                   font-weight: 500;
+                  color: var(--media-accent-color, #fff);
                 }
 
                 .lang-col li .icon {
@@ -808,18 +820,11 @@ function initVideo() {
                   opacity: 1;
                   transform: translateX(0);
                 }
-                .lang-col ul {
-                  padding: 0;
-                  margin: 0;
-                }
               </style>
 
               <button title="Audio & Subtitles" class="lang-btn">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    width="26" height="26" viewBox="0 0 26 26"
-                    fill="none" stroke="currentColor" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round"
-                    class="lucide lucide-languages">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
                   <path d="m5 8 6 6"/>
                   <path d="m4 14 6-6 2-3"/>
                   <path d="M2 5h12"/>

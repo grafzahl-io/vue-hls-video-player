@@ -207,6 +207,12 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.19
+- Switcher supports both single and multi-language HLS sources
+- Automatically syncs subtitle language with selected audio track
+- Works with videos that include or omit subtitles
+- Includes native cuechange event handling for subtitle updates
+- Removed the default media-captions (CC) button from the player
 v1.1.18
 - Added new slot `between-video-and-transcript` to `BasePlayer.vue`, `VDefaultVideoPlayer.vue` and `index.vue`
 to allow injection of custom UI between video and transcript.

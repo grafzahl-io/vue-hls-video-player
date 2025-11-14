@@ -187,7 +187,6 @@ let buttonElement = null
 const currentLang = ref(props.defaultLang || 'en')
 // --- Remember and restore last subtitle language ---
 async function selectLang(lang) {
-
   if (!video.value || !hls) return;
   if (lang === currentLang.value) return;
 
@@ -232,7 +231,6 @@ async function selectLang(lang) {
 
       currentSubtitleLang.value = lang;
       console.log('[LangSwitch] currentSubtitleLang set to', currentSubtitleLang.value);
-      updateLangMenuState();
     });
     await hls.loadSource(newSource.file_url);
     video.value.muted = true;
@@ -241,10 +239,7 @@ async function selectLang(lang) {
   }
 }
 
-console.log('[LangMenu][Check]', document.querySelectorAll('.lang-switcher .lang-menu').length);
-
 function updateLangMenuState() {
-  // const menu = document.querySelector('.lang-switcher .lang-menu');
   const mediaTheme = document.querySelector('.video-player-theme-container');
   const controlBar = mediaTheme?.shadowRoot?.querySelector('media-control-bar');
   const langSwitcher = controlBar?.querySelector('.lang-switcher');
@@ -253,12 +248,13 @@ function updateLangMenuState() {
 
   const audioCol = menu.querySelector('.audio-col');
   const subCol = menu.querySelector('.sub-col');
-  // Updating chevron marks
-  console.log('   currentLang:', currentLang.value);
-  console.log('   currentSubtitleLang:', currentSubtitleLang.value);
+  
   // --- Audio ---
   audioCol?.querySelectorAll('li').forEach(li => {
-    const liLang = li.textContent.trim().toLowerCase();
+    const langElement = li.querySelector('span[data-lang]')
+    const liLang = langElement?.dataset?.lang;
+    // const liLang = li.textContent.trim().toLowerCase();
+  console.log("-- audio li lang", currentLang.value, liLang)
     li.classList.toggle('active', liLang === currentLang.value.toLowerCase());
   });
 
@@ -267,9 +263,9 @@ function updateLangMenuState() {
   const activeSubLang = activeTrack
     ? (activeTrack.language || activeTrack.srclang || '').toLowerCase()
     : 'aus';
-  console.log('[LangMenu] Active subtitle track:', activeSubLang);
   subCol?.querySelectorAll('li').forEach(li => {
-    const liLang = li.textContent.trim().toLowerCase();
+    const subElement = li.querySelector('span[data-lang]')
+    const liLang = subElement?.dataset?.lang;
     li.classList.toggle('active', liLang === activeSubLang);
   });
 }
@@ -398,8 +394,6 @@ async function startFullscreen() {
     buttonElement.removeAttribute('mediaIsFullscreen');
     const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip');
     if (tooltip) {
-      console.log("Tooltip gefunden:", tooltip);
-
       // Slots für Tooltip-Enter und Tooltip-Exit finden
       const enterTooltip = tooltip.querySelector('slot[name="tooltip-enter"]');
       const exitTooltip = tooltip.querySelector('slot[name="tooltip-exit"]');
@@ -420,8 +414,6 @@ async function startFullscreen() {
       buttonElement.setAttribute('mediaIsFullscreen', '');
       const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip');
       if (tooltip) {
-        console.log("Tooltip gefunden:", tooltip);
-
         // Slots für Tooltip-Enter und Tooltip-Exit finden
         const enterTooltip = tooltip.querySelector('slot[name="tooltip-enter"]');
         const exitTooltip = tooltip.querySelector('slot[name="tooltip-exit"]');
@@ -550,9 +542,9 @@ function prepareVideoPlayer(link) {
   hls.loadSource(link);
   hls.attachMedia(video.value);
   video.value.textTracks.addEventListener('change', () => {
-  Array.from(video.value?.textTracks || []).forEach(track => {
-    console.log('[TrackChange] Track', track.language || track.srclang, '→', track.mode);
-  });
+    Array.from(video.value?.textTracks || []).forEach(track => {
+      console.log('[TrackChange] Track', track.language || track.srclang, '→', track.mode);
+    });
   });
   // Native subtitle handling – without polling
   Array.from(video.value?.textTracks || []).forEach(track => {
@@ -585,12 +577,10 @@ function prepareVideoPlayer(link) {
     });
   };
 
-  console.log('[SubtitleInit] Setting up initial subtitles', props.subtitles);
   // Initialize subtitles
   if (props.subtitles?.length > 0) {
     const defaultSub = props.subtitles.find(s => s.lang === props.defaultLang);
     currentSubtitleLang.value = defaultSub ? defaultSub.lang : props.subtitles[0].lang;
-    console.log('[SubtitleInit] Default subtitle language set to', currentSubtitleLang.value);
     Array.from(video.value?.textTracks || []).forEach(track => {
       const tLang = (track.language || track.srclang || '').toLowerCase();
       console.log('[SubtitleInit] Track found:', tLang, '->', tLang === currentSubtitleLang.value.toLowerCase() ? 'showing' : 'disabled');
@@ -861,7 +851,7 @@ function initVideo() {
             props.multiLangSources.forEach(src => {
               const li = document.createElement('li');
               li.innerHTML = `
-                <span>${src.label || src.lang.toUpperCase()}</span>
+                <span data-lang="${ src.lang }">${src.label || src.lang.toUpperCase()}</span>
                 <span class="icon">${renderIcon()}</span>
               `;
               if (src.lang === currentLang.value) li.classList.add('active');
@@ -874,24 +864,13 @@ function initVideo() {
               audioCol.appendChild(li);
             });
 
-            // Subtitle options
-            /* const off = document.createElement('li');
-            off.innerHTML = `<span>Off</span><span class="icon">${renderIcon()}</span>`;
-            off.addEventListener('click', () => {
-              Array.from(video.value.textTracks).forEach(track => (track.mode = 'disabled'));
-              subCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
-              off.classList.add('active');
-              currentSubtitleLang.value = null;
-              menu.style.display = 'none';
-            });
-            subCol.appendChild(off); */
-
             props.subtitles.forEach(sub => {
               const li = document.createElement('li');
               li.innerHTML = `
-                <span>${sub.label || sub.lang.toUpperCase()}</span>
+                <span data-lang="${ sub.lang }">${sub.label || sub.lang.toUpperCase()}</span>
                 <span class="icon">${renderIcon()}</span>
               `;
+
               if (sub.lang === currentSubtitleLang.value) li.classList.add('active');
               li.addEventListener('click', () => {
                 Array.from(video.value?.textTracks || []).forEach(track => {
@@ -910,19 +889,18 @@ function initVideo() {
               e.stopPropagation();
               const isOpen = menu.style.display === 'block';
               menu.style.display = isOpen ? 'none' : 'block';
+              updateLangMenuState();
             });
             document.addEventListener('click', e => {
               if (!menu.contains(e.target) && !button.contains(e.target)) {
                 menu.style.display = 'none';
                 button.setAttribute('aria-expanded', 'false');
+                updateLangMenuState();
               }
             });
 
-
             controlBar.insertBefore(langDiv, fullscreenButton);
-            console.log('[LangSwitch] Amazon Prime style menu added');
           }
-
 
           observer.disconnect();
         } else {
@@ -932,7 +910,7 @@ function initVideo() {
         console.error('Shadow Root not found!');
       }
     })
-    observer.observe(document.querySelector('.video-player-theme-container'), { childList: true, subtree: true });
+    
     // --- Start pointer-update loop ---
     if (!rafId) {
       emitPointerUpdate()

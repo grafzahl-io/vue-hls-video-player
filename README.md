@@ -207,6 +207,8 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.20
+- Stability and UI style improvements for Language switch
 v1.1.19
 - Switcher supports both single and multi-language HLS sources
 - Automatically syncs subtitle language with selected audio track

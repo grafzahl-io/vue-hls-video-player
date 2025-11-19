@@ -274,9 +274,13 @@ async function parseTXT(fileUrl) {
   const lines = text.split('\n');
   let cue = null;
   let dialog = null;
+  let speakerRowSet = false;
+  let timeStampRowSet = false;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (!line) continue;
+    if(timeStampRowSet && speakerRowSet) {
+      if (!line) continue;
+    }
 
     /**
      * extract every transcript part by time
@@ -292,16 +296,20 @@ async function parseTXT(fileUrl) {
         text: '',
         speaker: ''
       }
-    } else if (cue && dialog.text == '' && dialog.speaker == '') {
+      timeStampRowSet = true;
+    } else if (cue && dialog.text == '' && !speakerRowSet) {
+      speakerRowSet = true;
       dialog.speaker = line;
-    } else if (cue && dialog.speaker !== '') {
+    } else if (cue && speakerRowSet) {
       dialog.text += line + ' ';
     }
 
-    if (cue && (!lines[i + 1] || lines[i + 1].match(/^\d{2}:\d{2}:\d{2}:\d{2} - \d{2}:\d{2}:\d{2}:\d{2}/))) {
+    if (cue && speakerRowSet && timeStampRowSet && (!lines[i + 1] || lines[i + 1].match(/^\d{2}:\d{2}:\d{2}:\d{2} - \d{2}:\d{2}:\d{2}:\d{2}/))) {
       cue.dialog.push(dialog);
       cues.push(cue);
       cue = null;
+      speakerRowSet = false;
+      timeStampRowSet = false;
     }
   }
   return cues;

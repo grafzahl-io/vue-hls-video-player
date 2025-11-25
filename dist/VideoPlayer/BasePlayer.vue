@@ -662,7 +662,8 @@ function initVideo() {
           }
 
           // --- Amazon Prime Style Language Switcher ---
-          if (controlBar && !controlBar.querySelector('.lang-switcher')) {
+          if (controlBar && !controlBar.querySelector('.lang-switcher')
+            && (props.multiLangSources.length > 1 || props.subtitles.length > 1)) {
             const langDiv = document.createElement('div');
             langDiv.className = 'lang-switcher';
             langDiv.innerHTML = `

@@ -207,6 +207,8 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.22
+- Only show language selection if subtitles or audio options are > 1
 v1.1.21
 - Added more tolerant processing for .txt transcripts to allow empty lines as narrators
 v1.1.20

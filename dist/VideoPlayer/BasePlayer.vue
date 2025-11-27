@@ -179,6 +179,7 @@ const initialPlayButton = ref(false);
 const hideInitialPlayButton = ref(false);
 const transcriptRef = ref(null);
 const previewImageLink = toRef(props, 'previewImageLink');
+const subtitles = toRef(props, 'subtitles');
 const link = toRef(props, 'link');
 let currentTime = 0
 let hls = null
@@ -232,6 +233,7 @@ async function selectLang(lang) {
       currentSubtitleLang.value = lang;
       console.log('[LangSwitch] currentSubtitleLang set to', currentSubtitleLang.value);
     });
+    // Attach HLS
     await hls.loadSource(newSource.file_url);
     video.value.muted = true;
   } catch (err) {
@@ -254,7 +256,6 @@ function updateLangMenuState() {
     const langElement = li.querySelector('span[data-lang]')
     const liLang = langElement?.dataset?.lang;
     // const liLang = li.textContent.trim().toLowerCase();
-  console.log("-- audio li lang", currentLang.value, liLang)
     li.classList.toggle('active', liLang === currentLang.value.toLowerCase());
   });
 
@@ -271,26 +272,6 @@ function updateLangMenuState() {
 }
 
 watch(currentSubtitleLang, () => updateLangMenuState());
-
-/* function selectLang(lang) {
-  currentLang.value = lang;
-  showLangMenu.value = false;
-
-  const newSource = props.multiLangSources.find(s => s.lang === lang);
-  if (newSource) {
-    hls.stopLoad();
-    hls.detachMedia();
-    hls.loadSource(newSource.file_url);
-    hls.attachMedia(video.value);
-    hls.startLoad();
-  }
-
-  // Subtitle sync
-  const textTracks = video.value.textTracks;
-  for (const track of textTracks) {
-    track.mode = track.language === lang ? 'showing' : 'disabled';
-  }
-} */
 
 // --- Frame Pointer Loop ---
 let rafId = null
@@ -537,7 +518,6 @@ function prepareVideoPlayer(link) {
 
   // Preparing video player with link: ${link}
   hls = new Hls(hlsConfig);
-
   // Attach HLS
   hls.loadSource(link);
   hls.attachMedia(video.value);
@@ -588,6 +568,7 @@ function prepareVideoPlayer(link) {
     });
   }
 
+selectLang(props.defaultLang);
   // HLS attached to <video>
   hls.recoverMediaError();
 
@@ -639,284 +620,283 @@ function initVideo() {
      * overwrite player.style video fullscreen button
      * to inject own fullscreen logic
      */
-    const observer = new MutationObserver((mutationsList, observer) => {
-      const mediaTheme = document.querySelector('.video-player-theme-container');
-      if (mediaTheme && mediaTheme.shadowRoot) {
-        // controllbar
-        const controlBar = mediaTheme.shadowRoot.querySelector('media-control-bar');
-        const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
-        buttonElement = fullscreenButton
-        const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
-        playbackRateButton.setAttribute('rates', '0.25 0.5 0.75 1 1.5 2 3');
-        if (fullscreenButton) {
-          fullscreenButton.handleClick = async (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            startFullscreen();
-          }
-          // --- Remove default CC button ---
-          const ccButton = mediaTheme.shadowRoot.querySelector('media-captions-button');
-          if (ccButton) {
-            ccButton.remove();
-          }
-
-          // --- Amazon Prime Style Language Switcher ---
-          if (controlBar && !controlBar.querySelector('.lang-switcher')
-            && (props.multiLangSources.length > 1 || props.subtitles.length > 1)) {
-            const langDiv = document.createElement('div');
-            langDiv.className = 'lang-switcher';
-            langDiv.innerHTML = `
-              <style>
-                .lang-switcher {
-                  position: relative;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin-left: var(--media-control-spacing, 6px);
-                }
-
-                .lang-switcher button {
-                  all: unset;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  cursor: pointer;
-                  height: var(--media-button-height, 32px);
-                  border-radius: 25%;
-                  min-width: var(--media-button-height, 32px);
-                  padding: var(--media-button-padding, 0 5px);
-                  background: transparent;
-                  transition: background 0.15s ease, transform 0.1s ease;
-                }
-
-                .lang-switcher button svg {
-                  width: var(--media-icon-size, 24px);
-                  height: var(--media-icon-size, 24px);
-                  color: var(--media-icon-color, white);
-                  stroke: currentColor;
-                  opacity: var(--media-icon-opacity, 0.9);
-                  pointer-events: none;
-                  transition: opacity 0.15s ease;
-                }
-
-                .lang-switcher button:hover svg {
-                  transform: scale(1.1);
-                }
-
-                .lang-switcher button:hover {
-                  opacity: var(--media-icon-opacity-hover, 1);
-                  background: var(--media-control-hover-background, rgba(50 50 70 / .7));
-                  transition: backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
-                  box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
-                  backdrop-filter: blur(10px) invert(15%) brightness(80%) opacity(1);
-                  padding: 5px;
-                  color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
-                }
-
-                .lang-btn[title]:hover::after {
-                  content: attr(title);
-                  position: fixed;
-                  bottom: 122%;
-                  right: -100%;
-                  white-space: nowrap;
-                  background: var(--media-tooltip-background, rgba(0,0,0,0.2));
-                  color: var(--media-tooltip-color, #fff);
-                  border-radius: 4px;
-                  padding: 4px 15px;
-                  font-size: var(--media-font-size, 12px);
-                  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-                  line-height: calc(1.2 * var(--base));
-                }
-
-                .lang-menu {
-                  position: absolute;
-                  bottom: calc(var(--media-button-height, 32px) * 1.7);
-                  right: -48px;
-                  background: var(--media-control-bar-background, rgba(20,20,20,0.4));
-                  backdrop-filter: blur(12px);
-                  border-radius: 12px;
-                  box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
-                  padding: 10px;
-                  min-width: 240px;
-                  display: none;
-                  animation: fadeUp 0.15s ease-out;
-                  color: var(--media-text-color, #fff);
-                  font-family: var(--media-font-family, system-ui, sans-serif);
-                  font-size: var(--media-font-size, 13px);
-                  z-index: 9999;
-                }
-
-                @keyframes fadeUp {
-                  from { opacity: 0; transform: translateY(8px); }
-                  to { opacity: 1; transform: translateY(0); }
-                }
-
-                .lang-columns {
-                  display: flex;
-                  justify-content: space-between;
-                  gap: 1rem;
-                }
-
-                .lang-col {
-                  flex: 1;
-                  display: flex;
-                  flex-direction: column;
-                  margin: 0;
-                  padding: 0;
-                }
-
-                .lang-col .title {
-                  line-height: calc(1.2 * var(--base));
-                  font-weight: 600;
-                  font-size: calc(var(--media-font-size, 13px) - 1px);
-                  margin-bottom: 4px;
-                  border-bottom: 1px solid rgba(255,255,255,0.1);
-                  padding-bottom: 2px;
-                }
-
-                .lang-col ul {
-                  list-style: none;
-                  margin: 0;
-                  padding: 0;
-                }
-
-                .lang-col li {
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                  cursor: pointer;
-                  border-radius: 4px;
-                  padding: 2px 12px;
-                  transition: background 0.15s ease, color 0.15s ease;
-                }
-                
-                .lang-col li span {
-                  line-height: calc(1.2 * var(--base));
-                }
-
-                .lang-col li:hover {
-                  background: var(--media-control-hover-background, rgba(255,255,255,0.15));
-                }
-
-                .lang-col li.active {
-                  font-weight: 500;
-                  color: var(--media-accent-color, #fff);
-                }
-
-                .lang-col li .icon {
-                  opacity: 0;
-                  transition: opacity 0.15s ease, transform 0.15s ease;
-                  transform: translateX(2px);
-                }
-
-                .lang-col li.active .icon {
-                  opacity: 1;
-                  transform: translateX(0);
-                }
-              </style>
-
-              <button title="Audio & Subtitles" class="lang-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m5 8 6 6"/>
-                  <path d="m4 14 6-6 2-3"/>
-                  <path d="M2 5h12"/>
-                  <path d="M7 2h1"/>
-                  <path d="m22 22-5-10-5 10"/>
-                  <path d="M14 18h6"/>
-                </svg>
-              </button>
-
-              <div class="lang-menu">
-                <div class="lang-columns">
-                  <ul class="lang-col audio-col"><li class="title">Audio</li></ul>
-                  <ul class="lang-col sub-col"><li class="title">Subtitles</li></ul>
-                </div>
-              </div>
-            `;
-
-            const menu = langDiv.querySelector('.lang-menu');
-            const audioCol = menu.querySelector('.audio-col');
-            const subCol = menu.querySelector('.sub-col');
-            const button = langDiv.querySelector('button');
-            menu.addEventListener('click', e => e.stopPropagation());
-            // Chrome Media Player style check icon
-            const renderIcon = () => `
-              <svg aria-hidden="true" viewBox="0 1 24 24" width="16" height="16" part="checked-indicator indicator">
-                <path fill="currentColor" d="m10 15.17 9.193-9.191 1.414 1.414-10.606 10.606-6.364-6.364 1.414-1.414 4.95 4.95Z"></path>
-              </svg>
-            `;
-
-            // Audio options
-            props.multiLangSources.forEach(src => {
-              const li = document.createElement('li');
-              li.innerHTML = `
-                <span data-lang="${ src.lang }">${src.label || src.lang.toUpperCase()}</span>
-                <span class="icon">${renderIcon()}</span>
-              `;
-              if (src.lang === currentLang.value) li.classList.add('active');
-              li.addEventListener('click', () => {
-                audioCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
-                li.classList.add('active');
-                selectLang(src.lang);
-                menu.style.display = 'none';
-              });
-              audioCol.appendChild(li);
-            });
-
-            props.subtitles.forEach(sub => {
-              const li = document.createElement('li');
-              li.innerHTML = `
-                <span data-lang="${ sub.lang }">${sub.label || sub.lang.toUpperCase()}</span>
-                <span class="icon">${renderIcon()}</span>
-              `;
-
-              if (sub.lang === currentSubtitleLang.value) li.classList.add('active');
-              li.addEventListener('click', () => {
-                Array.from(video.value?.textTracks || []).forEach(track => {
-                  const tLang = (track.language || track.srclang || '').toLowerCase();
-                  track.mode = tLang === sub.lang.toLowerCase() ? 'showing' : 'disabled';
-                });
-                subCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
-                li.classList.add('active');
-                menu.style.display = 'none';
-                currentSubtitleLang.value = sub.lang;
-              });
-              subCol.appendChild(li);
-            });
-
-            button.addEventListener('click', e => {
-              e.stopPropagation();
-              const isOpen = menu.style.display === 'block';
-              menu.style.display = isOpen ? 'none' : 'block';
-              updateLangMenuState();
-            });
-            document.addEventListener('click', e => {
-              if (!menu.contains(e.target) && !button.contains(e.target)) {
-                menu.style.display = 'none';
-                button.setAttribute('aria-expanded', 'false');
-                updateLangMenuState();
-              }
-            });
-
-            controlBar.insertBefore(langDiv, fullscreenButton);
-          }
-
-          observer.disconnect();
-        } else {
-          console.error('Button not found in Shadow DOM!');
-        }
-      } else {
-        console.error('Shadow Root not found!');
-      }
-    })
-    
+    const observer = new MutationObserver(mutationObserver)
     // --- Start pointer-update loop ---
     if (!rafId) {
       emitPointerUpdate()
-    }
+    }    
+    observer.observe(document.querySelector('.video-player-theme-container'), { childList: true, subtree: true });
     observer.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
+const mutationObserver = (mutationsList, observer) => {
+  const mediaTheme = document.querySelector('.video-player-theme-container');
+  if (mediaTheme && mediaTheme.shadowRoot) {
+    // controllbar
+    const controlBar = mediaTheme.shadowRoot.querySelector('media-control-bar');
+    const fullscreenButton = mediaTheme.shadowRoot.querySelector('media-fullscreen-button');
+    buttonElement = fullscreenButton
+    const playbackRateButton = mediaTheme.shadowRoot.querySelector('media-playback-rate-menu');
+    playbackRateButton.setAttribute('rates', '0.25 0.5 0.75 1 1.5 2 3');
+    if (fullscreenButton) {
+      fullscreenButton.handleClick = async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        startFullscreen();
+      }
+      // --- Remove default CC button ---
+      const ccButton = mediaTheme.shadowRoot.querySelector('media-captions-button');
+      if (ccButton) {
+        ccButton.remove();
+      }
+      // --- Amazon Prime Style Language Switcher ---
+      if (controlBar && !controlBar.querySelector('.lang-switcher')
+        && (props.multiLangSources.length > 1 || props.subtitles.length > 1)) {
+        const langDiv = document.createElement('div');
+        langDiv.className = 'lang-switcher';
+        langDiv.innerHTML = `
+          <style>
+            .lang-switcher {
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-left: var(--media-control-spacing, 6px);
+            }
+
+            .lang-switcher button {
+              all: unset;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              height: var(--media-button-height, 32px);
+              border-radius: 25%;
+              min-width: var(--media-button-height, 32px);
+              padding: var(--media-button-padding, 0 5px);
+              background: transparent;
+              transition: background 0.15s ease, transform 0.1s ease;
+            }
+
+            .lang-switcher button svg {
+              width: var(--media-icon-size, 24px);
+              height: var(--media-icon-size, 24px);
+              color: var(--media-icon-color, white);
+              stroke: currentColor;
+              opacity: var(--media-icon-opacity, 0.9);
+              pointer-events: none;
+              transition: opacity 0.15s ease;
+            }
+
+            .lang-switcher button:hover svg {
+              transform: scale(1.1);
+            }
+
+            .lang-switcher button:hover {
+              opacity: var(--media-icon-opacity-hover, 1);
+              background: var(--media-control-hover-background, rgba(50 50 70 / .7));
+              transition: backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
+              box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
+              backdrop-filter: blur(10px) invert(15%) brightness(80%) opacity(1);
+              padding: 5px;
+              color: var(--media-text-color, var(--media-primary-color, rgb(238 238 238)));
+            }
+
+            .lang-btn[title]:hover::after {
+              content: attr(title);
+              position: fixed;
+              bottom: 122%;
+              right: -100%;
+              white-space: nowrap;
+              background: var(--media-tooltip-background, rgba(0,0,0,0.2));
+              color: var(--media-tooltip-color, #fff);
+              border-radius: 4px;
+              padding: 4px 15px;
+              font-size: var(--media-font-size, 12px);
+              box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+              line-height: calc(1.2 * var(--base));
+            }
+
+            .lang-menu {
+              position: absolute;
+              bottom: calc(var(--media-button-height, 32px) * 1.7);
+              right: -48px;
+              background: var(--media-control-bar-background, rgba(20,20,20,0.4));
+              backdrop-filter: blur(12px);
+              border-radius: 12px;
+              box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
+              padding: 10px;
+              min-width: 240px;
+              display: none;
+              animation: fadeUp 0.15s ease-out;
+              color: var(--media-text-color, #fff);
+              font-family: var(--media-font-family, system-ui, sans-serif);
+              font-size: var(--media-font-size, 13px);
+              z-index: 9999;
+            }
+
+            @keyframes fadeUp {
+              from { opacity: 0; transform: translateY(8px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            .lang-columns {
+              display: flex;
+              justify-content: space-between;
+              gap: 1rem;
+            }
+
+            .lang-col {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              margin: 0;
+              padding: 0;
+            }
+
+            .lang-col .title {
+              line-height: calc(1.2 * var(--base));
+              font-weight: 600;
+              font-size: calc(var(--media-font-size, 13px) - 1px);
+              margin-bottom: 4px;
+              border-bottom: 1px solid rgba(255,255,255,0.1);
+              padding-bottom: 2px;
+            }
+
+            .lang-col ul {
+              list-style: none;
+              margin: 0;
+              padding: 0;
+            }
+
+            .lang-col li {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              cursor: pointer;
+              border-radius: 4px;
+              padding: 2px 12px;
+              transition: background 0.15s ease, color 0.15s ease;
+            }
+            
+            .lang-col li span {
+              line-height: calc(1.2 * var(--base));
+            }
+
+            .lang-col li:hover {
+              background: var(--media-control-hover-background, rgba(255,255,255,0.15));
+            }
+
+            .lang-col li.active {
+              font-weight: 500;
+              color: var(--media-accent-color, #fff);
+            }
+
+            .lang-col li .icon {
+              opacity: 0;
+              transition: opacity 0.15s ease, transform 0.15s ease;
+              transform: translateX(2px);
+            }
+
+            .lang-col li.active .icon {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          </style>
+
+          <button title="Audio & Subtitles" class="lang-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round">
+              <path d="m5 8 6 6"/>
+              <path d="m4 14 6-6 2-3"/>
+              <path d="M2 5h12"/>
+              <path d="M7 2h1"/>
+              <path d="m22 22-5-10-5 10"/>
+              <path d="M14 18h6"/>
+            </svg>
+          </button>
+
+          <div class="lang-menu">
+            <div class="lang-columns">
+              <ul class="lang-col audio-col"><li class="title">Audio</li></ul>
+              <ul class="lang-col sub-col"><li class="title">Subtitles</li></ul>
+            </div>
+          </div>
+        `;
+        const menu = langDiv.querySelector('.lang-menu');
+        const audioCol = menu.querySelector('.audio-col');
+        const subCol = menu.querySelector('.sub-col');
+        const button = langDiv.querySelector('button');
+        menu.addEventListener('click', e => e.stopPropagation());
+        // Chrome Media Player style check icon
+        const renderIcon = () => `
+          <svg aria-hidden="true" viewBox="0 1 24 24" width="16" height="16" part="checked-indicator indicator">
+            <path fill="currentColor" d="m10 15.17 9.193-9.191 1.414 1.414-10.606 10.606-6.364-6.364 1.414-1.414 4.95 4.95Z"></path>
+          </svg>
+        `;
+
+        // Audio options
+        props.multiLangSources.forEach(src => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span data-lang="${ src.lang }">${src.label || src.lang.toUpperCase()}</span>
+            <span class="icon">${renderIcon()}</span>
+          `;
+          if (src.lang === currentLang.value) li.classList.add('active');
+          li.addEventListener('click', () => {
+            audioCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
+            li.classList.add('active');
+            selectLang(src.lang);
+            menu.style.display = 'none';
+          });
+          audioCol.appendChild(li);
+        });
+        props.subtitles.forEach(sub => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span data-lang="${ sub.lang }">${sub.label || sub.lang.toUpperCase()}</span>
+            <span class="icon">${renderIcon()}</span>
+          `;
+
+          if (sub.lang === currentSubtitleLang.value) li.classList.add('active');
+          li.addEventListener('click', () => {
+            Array.from(video.value?.textTracks || []).forEach(track => {
+              const tLang = (track.language || track.srclang || '').toLowerCase();
+              track.mode = tLang === sub.lang.toLowerCase() ? 'showing' : 'disabled';
+            });
+            subCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
+            li.classList.add('active');
+            menu.style.display = 'none';
+            currentSubtitleLang.value = sub.lang;
+          });
+          subCol.appendChild(li);
+        });
+
+        button.addEventListener('click', e => {
+          e.stopPropagation();
+          const isOpen = menu.style.display === 'block';
+          menu.style.display = isOpen ? 'none' : 'block';
+          updateLangMenuState();
+        });
+        document.addEventListener('click', e => {
+          if (!menu.contains(e.target) && !button.contains(e.target)) {
+            menu.style.display = 'none';
+            button.setAttribute('aria-expanded', 'false');
+            updateLangMenuState();
+          }
+        });
+
+        controlBar.insertBefore(langDiv, fullscreenButton);
+      }
+
+      observer.disconnect();
+    } else {
+      console.error('Button not found in Shadow DOM!');
+    }
+  } else {
+    console.error('Shadow Root not found!');
   }
 }
 
@@ -938,16 +918,6 @@ function changeSpeed(e) {
     video.value.playbackRate = video.value.playbackRate - 0.25
   }
 }
-defineExpose({ startFullscreen, getHls: () => hls, getVideo: () => video.value,
-  changeSource: (newLink) => {
-    if (!newLink) return;
-    hls.stopLoad();
-    hls.detachMedia();
-    hls.loadSource(newLink);
-    hls.attachMedia(video.value);
-    hls.startLoad();
-  }
- }); 
 
 </script>
 <style>

@@ -11,6 +11,7 @@
     :isFullscreen="isFullscreen"
     :link="link"
     :progress="progress"
+    :subtitles="subtitles"
     :isMuted="isMuted"
     :autoplay="autoplay"
     v-model="videoElement"
@@ -98,6 +99,10 @@ const props = defineProps({
   additionHeaders: {
     type: Object,
     default: {}
+  },
+  subtitles: {
+    type: Array,
+    default: []
   }
 })
 

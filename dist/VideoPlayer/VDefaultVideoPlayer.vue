@@ -9,6 +9,7 @@
     :autoplay="autoplay"
     :isControls="isControls"
     :onVideoEnd="onVideoEnd"
+    :subtitles="subtitles"
     :additionHeaders="additionHeaders"
     :isFullscreen="isFullscreen"
     :showTranscriptBlock="showTranscriptBlock"
@@ -88,6 +89,10 @@ const props = defineProps({
   additionHeaders: {
     type: Object,
     default: {}
+  },
+  subtitles: {
+    type: Array,
+    default: []
   }
 })
 

@@ -207,71 +207,75 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.23
+  - Fix missing property for subtitles in vue definition
+  - Clean up code
+  - Set mutation observer to body and the video element itself - whatever loads first
 v1.1.22
-- Only show language selection if subtitles or audio options are > 1
+  - Only show language selection if subtitles or audio options are > 1
 v1.1.21
-- Added more tolerant processing for .txt transcripts to allow empty lines as narrators
+  - Added more tolerant processing for .txt transcripts to allow empty lines as narrators
 v1.1.20
-- Stability and UI style improvements for Language switch
+  - Stability and UI style improvements for Language switch
 v1.1.19
-- Switcher supports both single and multi-language HLS sources
-- Automatically syncs subtitle language with selected audio track
-- Works with videos that include or omit subtitles
-- Includes native cuechange event handling for subtitle updates
-- Removed the default media-captions (CC) button from the player
+  - Switcher supports both single and multi-language HLS sources
+  - Automatically syncs subtitle language with selected audio track
+  - Works with videos that include or omit subtitles
+  - Includes native cuechange event handling for subtitle updates
+  - Removed the default media-captions (CC) button from the player
 v1.1.18
-- Added new slot `between-video-and-transcript` to `BasePlayer.vue`, `VDefaultVideoPlayer.vue` and `index.vue`
+  - Added new slot `between-video-and-transcript` to `BasePlayer.vue`, `VDefaultVideoPlayer.vue` and `index.vue`
 to allow injection of custom UI between video and transcript.
-- Introduced a continuous **Frame Pointer Loop** that emits a `pointer-update` event with the current playback time and calculated frame number (30 fps) for real-time frame tracking.
+  - Introduced a continuous **Frame Pointer Loop** that emits a `pointer-update` event with the current playback time and calculated frame number (30 fps) for real-time frame tracking.
 v1.1.17
-- Keep query params for transcription when getting from .vtt file to .txt
+  - Keep query params for transcription when getting from .vtt file to .txt
 v1.1.16
-- Add the options prop to both index.vue and VpDefaultVideoPlayer.vue to pass fullscreen label settings to the BasePlayer component.
-- Update fullscreen toggle logic: adjust aria-label, add or remove mediaIsFullscreen attribute, and safely access media-tooltip via shadowRoot to ensure proper icon and tooltip state handling.
+  - Add the options prop to both index.vue and VpDefaultVideoPlayer.vue to pass fullscreen label settings to the BasePlayer component.
+  - Update fullscreen toggle logic: adjust aria-label, add or remove mediaIsFullscreen attribute, and safely access media-tooltip via shadowRoot to ensure proper icon and tooltip state handling.
 v1.1.13 - v1.1.15
-- Update the hls.js package
-- Fixes
+  - Update the hls.js package
+  - Fixes
 
 v1.1.12
-- added component property to make it easier adding headers (like Authorization header into every hls request)
+  - added component property to make it easier adding headers (like Authorization header into every hls request)
 
 v1.0.14 - v1.1.11
-- Fixes
-- iOS specific improvements
-- New Options to customize the component
-- Fix problem with not updating transcript highlighting
-- Extending overloaded functions for fullscreen mode (WIP)
+  - Fixes
+  - iOS specific improvements
+  - New Options to customize the component
+  - Fix problem with not updating transcript highlighting
+  - Extending overloaded functions for fullscreen mode (WIP)
 
 v1.0.9 - v1.0.14
-- Fixes
-- Small styling improvements
+  - Fixes
+  - Small styling improvements
 
 v1.0.9
-- Fix sizes in fullscreen mode for video
-- Hide transcript block completely when hidden
+  - Fix sizes in fullscreen mode for video
+  - Hide transcript block completely when hidden
 
 v1.0.8
-- Add slots to inject own elements nearby video element
-- Add prop for autoplay video
+  - Add slots to inject own elements nearby video element
+  - Add prop for autoplay video
 
 v1.0.7
-- Add function to handle own logic for fullscreen
+  - Add function to handle own logic for fullscreen
 
 v1.0.6
-- Small fixes
-- Remove debug log
+  - Small fixes
+  - Remove debug log
 
 v1.0.5
-- Load transcriptions additionally to subtitles
-- Add styled transcription block for better readability
-- Improve interaction and dynamic params
+  - Load transcriptions additionally to subtitles
+  - Add styled transcription block for better readability
+  - Improve interaction and dynamic params
 
 v1.0.4
-- Make subtitles dynamic
-- Add new switch to disable the subtitle block
-- Fix some minor issues
+  - Make subtitles dynamic
+  - Add new switch to disable the subtitle block
+  - Fix some minor issues
 
 v1.0.3
-- Removed controls in favour of themable overlay by `player.style`.
-- Updated hls library
-- Added styled caption overlays. Added separate container to show all captions.
+  - Removed controls in favour of themable overlay by `player.style`.
+  - Updated hls library
+  - Added styled caption overlays. Added separate container to show all captions.

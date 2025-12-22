@@ -207,6 +207,10 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.24
+  - Add user-initiated language-changed emit.
+  - Fix unwanted language re-sync on player init.
+  - Improve audio/subtitle switch stability.
 v1.1.23
   - Fix missing property for subtitles in vue definition
   - Clean up code

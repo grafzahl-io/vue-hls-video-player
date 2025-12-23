@@ -71,7 +71,7 @@
   <slot name="between-video-and-transcript"></slot> 
   <slot name="before-transcripts"></slot>
   <SubtitleBlock
-    :key="currentLang"
+    :key="`${currentLang}-${currentSubtitleLang}`"
     ref="transcriptRef"
     :subtitle="currentSubtitle"
     :cursor="videoCursor"
@@ -167,7 +167,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'pointer-update'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'pointer-update', 'language-changed'])
 const video = ref(null)
 const subtitlesContainer = ref(null)
 const currentSubtitleLang = ref(null)
@@ -186,6 +186,30 @@ let hls = null
 let buttonElement = null
 // --- lang switcher ---
 const currentLang = ref(props.defaultLang || 'en')
+const isUserInitiatedLangChange = ref(false)
+
+let initialLoad = true;
+
+watch(
+  () => props.defaultLang,
+  (newLang, oldLang) => {
+    if (initialLoad) {
+      initialLoad = false;
+      return;
+    }
+    
+    if (newLang && newLang !== oldLang && newLang !== currentLang.value) {
+      const hasSub = props.subtitles?.find(s => s.lang === newLang);
+      if (hasSub) {
+        currentSubtitleLang.value = newLang;
+        Array.from(video.value?.textTracks || []).forEach(track => {
+          const tLang = (track.language || track.srclang || '').toLowerCase();
+          track.mode = tLang === newLang.toLowerCase() ? 'showing' : 'disabled';
+        });
+      }
+    }
+  }
+)
 // --- Remember and restore last subtitle language ---
 async function selectLang(lang) {
   if (!video.value || !hls) return;
@@ -225,13 +249,17 @@ async function selectLang(lang) {
       // Matching subtitles for matchLang
       Array.from(video.value?.textTracks || []).forEach(track => {
         const tLang = (track.language || track.srclang || '').toLowerCase();
-        console.log('[LangSwitch] Track', tLang, 'current mode:', track.mode);
         track.mode = tLang === matchLang ? 'showing' : 'disabled';
-        console.log('[LangSwitch] Track', tLang, '→ new mode:', track.mode);
       });
 
       currentSubtitleLang.value = lang;
-      console.log('[LangSwitch] currentSubtitleLang set to', currentSubtitleLang.value);
+      // Emit ONLY if user initiated the change
+      setTimeout(() => {
+        if (isUserInitiatedLangChange.value) {
+          emit('language-changed', lang);
+          isUserInitiatedLangChange.value = false; // Reset flag
+        }
+      }, 100);
     });
     // Attach HLS
     await hls.loadSource(newSource.file_url);
@@ -325,18 +353,20 @@ const mutedAttr = computed(() => {
   return (props.autoplay || props.isMuted);
 })
 
+
 const currentSubtitle = computed(() => {
-  if(props.subtitles) {
-    const current = props.subtitles.filter((subt) => {
-      if(currentSubtitleLang.value) {
-        return subt.lang === currentSubtitleLang.value
-      } else {
-        return subt.lang === "en"
-      }
-    })
-    return current.length ? current[0] : null
+  if (!props.subtitles?.length) return null;
+  
+  if (currentSubtitleLang.value) {
+    const match = props.subtitles.find(s => s.lang === currentSubtitleLang.value);
+    if (match) return match;
   }
-  return null
+  
+  // Fallback 
+  const defaultMatch = props.subtitles.find(s => s.lang === props.defaultLang);
+  if (defaultMatch) return defaultMatch;
+  
+  return props.subtitles[0];
 })
 
 watch(() => props.autoplay, (a) => {
@@ -560,15 +590,16 @@ function prepareVideoPlayer(link) {
   // Initialize subtitles
   if (props.subtitles?.length > 0) {
     const defaultSub = props.subtitles.find(s => s.lang === props.defaultLang);
-    currentSubtitleLang.value = defaultSub ? defaultSub.lang : props.subtitles[0].lang;
+    currentSubtitleLang.value = defaultSub ? props.defaultLang : props.subtitles[0].lang;
     Array.from(video.value?.textTracks || []).forEach(track => {
       const tLang = (track.language || track.srclang || '').toLowerCase();
-      console.log('[SubtitleInit] Track found:', tLang, '->', tLang === currentSubtitleLang.value.toLowerCase() ? 'showing' : 'disabled');
-      track.mode = tLang === currentSubtitleLang.value.toLowerCase() ? 'showing' : 'disabled';
+      const shouldShow = tLang === currentSubtitleLang.value.toLowerCase();
+      track.mode = shouldShow ? 'showing' : 'disabled';
+      // console.log('[SubtitleInit] Track found:', tLang, '->', shouldShow ? 'showing' : 'disabled');
     });
   }
 
-selectLang(props.defaultLang);
+  selectLang(props.defaultLang);
   // HLS attached to <video>
   hls.recoverMediaError();
 
@@ -848,6 +879,7 @@ const mutationObserver = (mutationsList, observer) => {
           li.addEventListener('click', () => {
             audioCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
             li.classList.add('active');
+            isUserInitiatedLangChange.value = true;
             selectLang(src.lang);
             menu.style.display = 'none';
           });

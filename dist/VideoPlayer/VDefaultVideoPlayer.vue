@@ -17,6 +17,7 @@
     @pause="pause"
     @video-ended="onVideoEnd"
     @video-fullscreen-change="onFullscreenChange"
+    @language-changed="onLanguageChanged"
     v-model="videoElement"
     ref="childRef"
   >
@@ -32,7 +33,7 @@
 import BasePlayer from './BasePlayer.vue'
 import { ref, toRef } from 'vue'
 
-const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change'])
+const emit = defineEmits(['pause', 'video-ended', 'video-fullscreen-change', 'language-changed'])
 
 const videoElement = ref(null);
 const childRef = ref(null)
@@ -114,6 +115,9 @@ function onFullscreenChange(data) {
   emit('video-fullscreen-change', data);
 }
 
+function onLanguageChanged(data) {
+  emit('language-changed', data);
+}
 function startFullscreen() {
   childRef.value.startFullscreen();
 }

@@ -185,35 +185,50 @@ let currentTime = 0
 let hls = null
 let buttonElement = null
 // --- lang switcher ---
-const currentLang = ref(props.defaultLang || 'en')
+const currentAudioLang = ref(props.defaultLang || 'en')
+
+const sessionSubtitleLang = 'vp_subtitle_lang'
+function initSubtitleLang() {
+  const stored = sessionStorage.getItem(sessionSubtitleLang)
+
+  if (stored && props.subtitles.some(s => s.lang === stored)) {
+    currentSubtitleLang.value = stored
+  } else {
+    currentSubtitleLang.value =
+      props.subtitles.find(s => s.lang === props.defaultLang)?.lang
+      || props.subtitles[0]?.lang
+  }
+
+  applySubtitleTrack(currentSubtitleLang.value)
+}
+
+function applySubtitleTrack(lang) {
+  Array.from(video.value?.textTracks || []).forEach(track => {
+    const tLang = (track.language || track.srclang || '').toLowerCase()
+    track.mode = tLang === lang.toLowerCase() ? 'showing' : 'disabled'
+  })
+}
+
+
+
 const isUserInitiatedLangChange = ref(false)
 
 let initialLoad = true;
+let defaultApplied = false
 
 watch(
   () => props.defaultLang,
-  (newLang, oldLang) => {
-    if (initialLoad) {
-      initialLoad = false;
-      return;
-    }
-    
-    if (newLang && newLang !== oldLang && newLang !== currentLang.value) {
-      const hasSub = props.subtitles?.find(s => s.lang === newLang);
-      if (hasSub) {
-        currentSubtitleLang.value = newLang;
-        Array.from(video.value?.textTracks || []).forEach(track => {
-          const tLang = (track.language || track.srclang || '').toLowerCase();
-          track.mode = tLang === newLang.toLowerCase() ? 'showing' : 'disabled';
-        });
-      }
-    }
+  (lang) => {
+    if (defaultApplied) return
+    currentAudioLang.value = lang
+    defaultApplied = true
   }
 )
+
 // --- Remember and restore last subtitle language ---
 async function selectLang(lang) {
   if (!video.value || !hls) return;
-  if (lang === currentLang.value) return;
+  if (lang === currentAudioLang.value) return;
 
   const newSource = props.multiLangSources?.find(s => s.lang === lang);
   if (!newSource?.file_url) {
@@ -227,7 +242,7 @@ async function selectLang(lang) {
   const wasMuted = video.value.muted;
   const rate = video.value.playbackRate;
 
-  currentLang.value = lang;
+  currentAudioLang.value = lang;
   // Switching to ${lang}...
 
   try {
@@ -284,7 +299,7 @@ function updateLangMenuState() {
     const langElement = li.querySelector('span[data-lang]')
     const liLang = langElement?.dataset?.lang;
     // const liLang = li.textContent.trim().toLowerCase();
-    li.classList.toggle('active', liLang === currentLang.value.toLowerCase());
+    li.classList.toggle('active', liLang === currentAudioLang.value.toLowerCase());
   });
 
   // --- Subtitles ---
@@ -589,14 +604,7 @@ function prepareVideoPlayer(link) {
 
   // Initialize subtitles
   if (props.subtitles?.length > 0) {
-    const defaultSub = props.subtitles.find(s => s.lang === props.defaultLang);
-    currentSubtitleLang.value = defaultSub ? props.defaultLang : props.subtitles[0].lang;
-    Array.from(video.value?.textTracks || []).forEach(track => {
-      const tLang = (track.language || track.srclang || '').toLowerCase();
-      const shouldShow = tLang === currentSubtitleLang.value.toLowerCase();
-      track.mode = shouldShow ? 'showing' : 'disabled';
-      // console.log('[SubtitleInit] Track found:', tLang, '->', shouldShow ? 'showing' : 'disabled');
-    });
+    initSubtitleLang();
   }
 
   selectLang(props.defaultLang);
@@ -875,7 +883,7 @@ const mutationObserver = (mutationsList, observer) => {
             <span data-lang="${ src.lang }">${src.label || src.lang.toUpperCase()}</span>
             <span class="icon">${renderIcon()}</span>
           `;
-          if (src.lang === currentLang.value) li.classList.add('active');
+          if (src.lang === currentAudioLang.value) li.classList.add('active');
           li.addEventListener('click', () => {
             audioCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
             li.classList.add('active');
@@ -894,14 +902,10 @@ const mutationObserver = (mutationsList, observer) => {
 
           if (sub.lang === currentSubtitleLang.value) li.classList.add('active');
           li.addEventListener('click', () => {
-            Array.from(video.value?.textTracks || []).forEach(track => {
-              const tLang = (track.language || track.srclang || '').toLowerCase();
-              track.mode = tLang === sub.lang.toLowerCase() ? 'showing' : 'disabled';
-            });
-            subCol.querySelectorAll('li').forEach(el => el.classList.remove('active'));
-            li.classList.add('active');
-            menu.style.display = 'none';
-            currentSubtitleLang.value = sub.lang;
+            currentSubtitleLang.value = sub.lang
+            sessionStorage.setItem(sessionSubtitleLang, sub.lang)
+            applySubtitleTrack(sub.lang)
+            menu.style.display = 'none'
           });
           subCol.appendChild(li);
         });

@@ -207,6 +207,10 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.25
+  - Decouple audio language switching from subtitle selection.
+  - Preserve user-selected subtitle language across audio changes and HLS source reloads.
+  - Prevent unintended subtitle resets caused by audio language updates.
 v1.1.24
   - Add user-initiated language-changed emit.
   - Fix unwanted language re-sync on player init.

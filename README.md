@@ -207,6 +207,10 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.26
+  - Prevent HLS chunk preloading during player initialization.
+  - Start HLS loading only after user interaction.
+  - Fallback to the first video frame when no preview image is available.
 v1.1.25
   - Decouple audio language switching from subtitle selection.
   - Preserve user-selected subtitle language across audio changes and HLS source reloads.

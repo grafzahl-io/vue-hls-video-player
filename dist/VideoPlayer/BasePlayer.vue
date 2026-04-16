@@ -8,7 +8,7 @@
       </div>
       <div class="media-overlay" v-if="initialPlayButton">
         <div class="initial-play" :class="{'hide-playbutton': hideInitialPlayButton}">
-          <media-play-button mediapaused="" class="media-button" aria-label="play" tabindex="0" role="button" @click="video.play()">
+          <media-play-button mediapaused="" class="media-button" aria-label="play" tabindex="0" role="button" @click="handleInitialPlay">
             <svg slot="icon" viewBox="0 0 32 32">
               <g>
                 <path id="icon-play" d="M20.7131 14.6976C21.7208 15.2735 21.7208 16.7265 20.7131 17.3024L12.7442 21.856C11.7442 22.4274 10.5 21.7054 10.5 20.5536L10.5 11.4464C10.5 10.2946 11.7442 9.57257 12.7442 10.144L20.7131 14.6976Z"></path>
@@ -31,6 +31,7 @@
           ref="video"
           :poster="previewImageLink"
           :controls="false"
+          preload="none"
           :title="title"
           controlslist="nodownload"
           playsinline
@@ -44,7 +45,7 @@
           <track 
             v-if="subtitles.length"
             v-for="(subtitle, i) in subtitles"
-            :key="subtitle.lang + '-' + currentLang"
+            :key="subtitle.lang + '-' + currentAudioLang"
             :src="subtitle.link"
             kind="subtitles"
             :srclang="subtitle.lang"
@@ -71,7 +72,7 @@
   <slot name="between-video-and-transcript"></slot> 
   <slot name="before-transcripts"></slot>
   <SubtitleBlock
-    :key="`${currentLang}-${currentSubtitleLang}`"
+    :key="`${currentAudioLang}-${currentSubtitleLang}`"
     ref="transcriptRef"
     :subtitle="currentSubtitle"
     :cursor="videoCursor"
@@ -215,6 +216,12 @@ const isUserInitiatedLangChange = ref(false)
 
 let initialLoad = true;
 let defaultApplied = false
+const hlsInitialized = ref(false)
+const hlsInitializing = ref(false)
+const pendingPlayRequest = ref(false)
+const pendingSeekTime = ref(null)
+const previewFramePrimed = ref(false)
+const previewFrameLoading = ref(false)
 
 watch(
   () => props.defaultLang,
@@ -349,7 +356,12 @@ function emitPointerUpdate() {
 const videoElement = defineModel()
 
 onMounted(() => {
-  prepareVideoPlayer(props.link)
+  if (video.value) {
+    video.value.muted = mutedAttr.value
+    video.value.currentTime = props.progress
+  }
+  initVideo()
+  maybeLoadFirstFrame()
 })
 
 onUnmounted(() => {
@@ -384,23 +396,26 @@ const currentSubtitle = computed(() => {
   return props.subtitles[0];
 })
 
-watch(() => props.autoplay, (a) => {
-  if(a[0].autoplay && a[1] && a[1].paused) {
-    // autoplay is only possible when muted
-    a[1].muted = true
-    setTimeout(() => {
-      a[1].play().catch(err => console.warn("Autoplay-Error:", err));
-    }, 200)
+watch(() => props.autoplay, (autoplay) => {
+  if (!autoplay || !video.value || !video.value.paused) {
+    return
   }
+
+  video.value.muted = true
+  setTimeout(() => {
+    handleInitialPlay().catch(err => console.warn("Autoplay-Error:", err))
+  }, 200)
 })
 
 watch(
   () => props.link,
   (newLink, oldLink) => {
-  if (newLink !== oldLink) {
-    prepareVideoPlayer(newLink);
+    if (newLink !== oldLink) {
+      resetPlayer()
+      maybeLoadFirstFrame()
+    }
   }
-})
+)
 
 async function startFullscreen() {
   let vpVideoBlock = document.getElementById(props.fullScreenElement);
@@ -547,13 +562,130 @@ function toggleTranscript() {
   props.showTranscriptBlock = !props.showTranscriptBlock
 }
 
-function seekVideo(time) {
-  video.value.currentTime = time;
-  video.value.play()
+async function handleInitialPlay() {
+  await startPlayback()
 }
 
-function prepareVideoPlayer(link) {
-  if (!video.value) return;
+async function startPlayback() {
+  if (!video.value) return
+
+  pendingPlayRequest.value = true
+  pendingSeekTime.value = null
+  initialPlayButton.value = false
+
+  if (!hlsInitialized.value) {
+    initPlayer(props.link)
+    return
+  }
+
+  if (previewFrameLoading.value && !previewFramePrimed.value) {
+    return
+  }
+
+  resumePreviewFrameStream()
+
+  try {
+    await video.value.play()
+    pendingPlayRequest.value = false
+  } catch (err) {
+    console.warn('[HLS] Play start failed:', err)
+    initialPlayButton.value = true
+  }
+}
+
+function initPlayer(src, { previewOnly = false } = {}) {
+  if (!video.value || !src || hlsInitialized.value || hlsInitializing.value) return
+
+  hlsInitializing.value = true
+
+  try {
+    prepareVideoPlayer(src, { previewOnly })
+    hlsInitialized.value = true
+  } finally {
+    hlsInitializing.value = false
+  }
+}
+
+function maybeLoadFirstFrame() {
+  if (
+    props.previewImageLink ||
+    !props.link ||
+    !video.value ||
+    hlsInitialized.value ||
+    hlsInitializing.value
+  ) {
+    return
+  }
+
+  initPlayer(props.link, { previewOnly: true })
+}
+
+function resumePreviewFrameStream() {
+  if (!previewFramePrimed.value || !hls || !video.value) return
+
+  previewFramePrimed.value = false
+  hls.startLoad(video.value.currentTime || 0)
+}
+
+function resetPlayer() {
+  hlsInitialized.value = false
+  hlsInitializing.value = false
+  pendingPlayRequest.value = false
+  pendingSeekTime.value = null
+  previewFramePrimed.value = false
+  previewFrameLoading.value = false
+  initialPlayButton.value = true
+  hideInitialPlayButton.value = false
+
+  if (hls) {
+    hls.detachMedia()
+    hls.destroy()
+    hls = null
+  }
+
+  if (!video.value) return
+
+  video.value.pause()
+  video.value.removeAttribute('src')
+  const source = video.value.querySelector('source')
+  if (source) {
+    source.removeAttribute('src')
+  }
+  video.value.load()
+  video.value.currentTime = props.progress
+  video.value.muted = mutedAttr.value
+}
+
+async function seekVideo(time) {
+  if (!video.value) return
+
+  if (!hlsInitialized.value) {
+    pendingSeekTime.value = time
+    pendingPlayRequest.value = true
+    initPlayer(props.link)
+    return
+  }
+
+  if (previewFrameLoading.value && !previewFramePrimed.value) {
+    pendingSeekTime.value = time
+    pendingPlayRequest.value = true
+    return
+  }
+
+  resumePreviewFrameStream()
+  video.value.currentTime = time
+
+  try {
+    await video.value.play()
+    pendingPlayRequest.value = false
+    pendingSeekTime.value = null
+  } catch (err) {
+    console.warn('[HLS] Seek play failed:', err)
+  }
+}
+
+function prepareVideoPlayer(link, { previewOnly = false } = {}) {
+  if (!video.value || !link) return;
 
   // Reset previous HLS instance
   if (hls) {
@@ -561,15 +693,68 @@ function prepareVideoPlayer(link) {
     hls.destroy();
   }
 
+  const playerHlsConfig = {
+    ...hlsConfig,
+    autoStartLoad: !previewOnly,
+  };
+
   // Preparing video player with link: ${link}
-  hls = new Hls(hlsConfig);
+  hls = new Hls(playerHlsConfig);
   // Attach HLS
   hls.loadSource(link);
   hls.attachMedia(video.value);
-  video.value.textTracks.addEventListener('change', () => {
-    Array.from(video.value?.textTracks || []).forEach(track => {
-      console.log('[TrackChange] Track', track.language || track.srclang, '→', track.mode);
-    });
+  hls.once(Hls.Events.MANIFEST_PARSED, async () => {
+    if (!video.value) return;
+
+    video.value.muted = mutedAttr.value;
+    video.value.currentTime = pendingSeekTime.value ?? props.progress;
+
+    if (previewOnly) {
+      previewFrameLoading.value = true;
+      video.value.addEventListener('loadeddata', async () => {
+        previewFrameLoading.value = false;
+
+        if (!video.value || !hls) return;
+
+        video.value.pause();
+
+        if (!pendingPlayRequest.value) {
+          previewFramePrimed.value = true;
+          hls.stopLoad();
+          return;
+        }
+
+        previewFramePrimed.value = false;
+        hls.startLoad(video.value.currentTime || 0);
+
+        if (pendingSeekTime.value != null) {
+          video.value.currentTime = pendingSeekTime.value;
+        }
+
+        try {
+          await video.value.play();
+          pendingPlayRequest.value = false;
+          pendingSeekTime.value = null;
+        } catch (err) {
+          console.warn('[HLS] Play after first frame failed:', err);
+          initialPlayButton.value = true;
+        }
+      }, { once: true });
+
+      hls.startLoad(0);
+      return;
+    }
+
+    if (!pendingPlayRequest.value) return;
+
+    try {
+      await video.value.play();
+      pendingPlayRequest.value = false;
+      pendingSeekTime.value = null;
+    } catch (err) {
+      console.warn('[HLS] Play after manifest failed:', err);
+      initialPlayButton.value = true;
+    }
   });
   // Native subtitle handling – without polling
   Array.from(video.value?.textTracks || []).forEach(track => {
@@ -615,7 +800,6 @@ function prepareVideoPlayer(link) {
   video.value.currentTime = props.progress;
   // Chrome-like: update menu whenever track mode changes
   video.value.textTracks.addEventListener('change', updateLangMenuState);
-  initVideo(); // Init controls etc.
 }
 
 

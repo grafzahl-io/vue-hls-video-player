@@ -120,7 +120,7 @@ function onVideoFullScreenChange(data) {
 function onVideoEnd(data) {
   emit('video-ended', data);
 }
-function startFullscreen() {
-  childRef.value.startFullscreen();
+function startFullscreen(forceEnter = false) {
+  return childRef.value?.startFullscreen?.(forceEnter)
 }
 </script>

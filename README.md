@@ -207,6 +207,11 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.27
+  - Expose BasePlayer fullscreen control through wrapper components.
+  - Add support for forced fullscreen re-entry from parent integrations.
+  - Avoid fullscreen request errors when no user activation is available.
+  - Keep fullscreen state and emitted events in sync across native and document fullscreen modes.
 v1.1.26
   - Prevent HLS chunk preloading during player initialization.
   - Start HLS loading only after user interaction.

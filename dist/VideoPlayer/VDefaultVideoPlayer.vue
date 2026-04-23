@@ -118,7 +118,7 @@ function onFullscreenChange(data) {
 function onLanguageChanged(data) {
   emit('language-changed', data);
 }
-function startFullscreen() {
-  childRef.value.startFullscreen();
+function startFullscreen(forceEnter = false) {
+  return childRef.value?.startFullscreen?.(forceEnter)
 }
 </script>

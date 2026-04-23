@@ -355,6 +355,8 @@ function emitPointerUpdate() {
 
 const videoElement = defineModel()
 
+defineExpose({ startFullscreen })
+
 onMounted(() => {
   if (video.value) {
     video.value.muted = mutedAttr.value
@@ -417,57 +419,79 @@ watch(
   }
 )
 
-async function startFullscreen() {
+function updateFullscreenButtonState(isActive) {
+  if (!buttonElement) return
+
+  buttonElement.setAttribute(
+    'aria-label',
+    isActive ? 'Exit fullscreen mode' : 'Enter fullscreen mode'
+  )
+
+  if (isActive) {
+    buttonElement.setAttribute('mediaIsFullscreen', '')
+  } else {
+    buttonElement.removeAttribute('mediaIsFullscreen')
+  }
+
+  const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip')
+  const enterTooltip = tooltip?.querySelector('slot[name="tooltip-enter"]')
+  const exitTooltip = tooltip?.querySelector('slot[name="tooltip-exit"]')
+
+  if (enterTooltip) {
+    enterTooltip.style.display = isActive ? 'none' : 'block'
+  }
+
+  if (exitTooltip) {
+    exitTooltip.style.display = isActive ? 'block' : 'none'
+  }
+}
+
+async function startFullscreen(forceEnter = false) {
   let vpVideoBlock = document.getElementById(props.fullScreenElement);
+  const hasDocumentFullscreen = !!document.fullscreenElement;
+  const hasNativeVideoFullscreen = !!video.value?.webkitDisplayingFullscreen;
+  const hasUserActivation =
+    typeof navigator === 'undefined' ||
+    !navigator.userActivation ||
+    navigator.userActivation.isActive;
   if(video.value) {
     currentTime = video.value.currentTime
   }
-  if (document.fullscreenElement) {
+  if (forceEnter && (hasDocumentFullscreen || hasNativeVideoFullscreen)) {
+    isFullscreen.value = true;
+    emit('video-fullscreen-change', true)
+    return;
+  }
+
+  // Browsers only allow fullscreen requests from a short-lived user interaction.
+  if (forceEnter && !hasUserActivation) {
+    return;
+  }
+
+  if (hasDocumentFullscreen || hasNativeVideoFullscreen) {
     if (screen.orientation && screen.orientation.unlock) {
       screen.orientation.unlock();
     }
-    await document.exitFullscreen();
-    if (/iPhone|iPad|AppleWebKit/i.test(navigator.userAgent)) {
-      document.webkitExitFullscreen();
-    } 
-    isFullscreen.value = false;
-    buttonElement.setAttribute('aria-label', "Enter fullscreen mode")
-    buttonElement.removeAttribute('mediaIsFullscreen');
-    const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip');
-    if (tooltip) {
-      // Slots für Tooltip-Enter und Tooltip-Exit finden
-      const enterTooltip = tooltip.querySelector('slot[name="tooltip-enter"]');
-      const exitTooltip = tooltip.querySelector('slot[name="tooltip-exit"]');
-
-      if (enterTooltip && exitTooltip) {
-        enterTooltip.style.display = 'block';
-        exitTooltip.style.display = 'none';
-      } else {
-        console.warn("Tooltip-Slots nicht gefunden!");
-      }
-    } else {
-      console.warn("Kein media-tooltip gefunden!");
+    if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+      await document.exitFullscreen();
     }
+    if (/iPhone|iPad|AppleWebKit/i.test(navigator.userAgent)) {
+      if (typeof video.value?.webkitExitFullscreen === 'function') {
+        video.value.webkitExitFullscreen();
+      } else if (typeof video.value?.webkitExitFullScreen === 'function') {
+        video.value.webkitExitFullScreen();
+      } else if (typeof document.webkitExitFullscreen === 'function') {
+        document.webkitExitFullscreen();
+      }
+    }
+    isFullscreen.value = false;
+    emit('video-fullscreen-change', false)
+    updateFullscreenButtonState(false)
   } else {
     isFullscreen.value = true;
+    emit('video-fullscreen-change', true)
     try {
-      buttonElement.setAttribute('aria-label', "Exit fullscreen mode")
-      buttonElement.setAttribute('mediaIsFullscreen', '');
-      const tooltip = buttonElement.shadowRoot?.querySelector('media-tooltip');
-      if (tooltip) {
-        // Slots für Tooltip-Enter und Tooltip-Exit finden
-        const enterTooltip = tooltip.querySelector('slot[name="tooltip-enter"]');
-        const exitTooltip = tooltip.querySelector('slot[name="tooltip-exit"]');
-
-        if (enterTooltip && exitTooltip) {
-          enterTooltip.style.display = 'none';
-          exitTooltip.style.display = 'block';
-        } else {
-          console.warn("Tooltip-Slots nicht gefunden!");
-        }
-      } else {
-        console.warn("Kein media-tooltip gefunden!");
-      }
+      updateFullscreenButtonState(true)
 
       if (vpVideoBlock.requestFullscreen) {
         await vpVideoBlock.requestFullscreen();
@@ -480,6 +504,7 @@ async function startFullscreen() {
             vpVideoBlock.style.height = "auto";
           }, 100);
           isFullscreen.value = false;
+          emit('video-fullscreen-change', false)
           vpVideoBlock.removeEventListener("webkitendfullscreen")
         });
       } else if (vpVideoBlock.mozRequestFullScreen) {
@@ -491,14 +516,15 @@ async function startFullscreen() {
         try {
           await screen.orientation.lock("landscape");
         } catch (error) {
-          console.warn("Orientation lock failed", error);
+          // ignore unsupported mobile/browser orientation lock failures
         }
-      } else {
-        console.warn("Orientation lock not supported.");
       }
     } catch (error) {
-      console.error("Fullscreen could not be activated", error);
+      if (!forceEnter) {
+        console.error("Fullscreen could not be activated", error);
+      }
       isFullscreen.value = false;
+      emit('video-fullscreen-change', false)
     }
 
     video.value.currentTime = currentTime;
@@ -520,6 +546,7 @@ function onFullscreenChange(e) {
     autoHideIntroTitle.value = false;
   }
   isFullscreen.value = !!document.fullscreenElement;
+  emit('video-fullscreen-change', isFullscreen.value)
 };
 
 function onOrientationChange(e) { 

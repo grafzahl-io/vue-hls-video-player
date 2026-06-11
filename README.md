@@ -207,6 +207,9 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.28
+  - Always render the subtitle overlay container regardless of fullscreen or transcript state.
+  - Clear subtitle overlay text when no text track is actively showing.
 v1.1.27
   - Expose BasePlayer fullscreen control through wrapper components.
   - Add support for forced fullscreen re-entry from parent integrations.

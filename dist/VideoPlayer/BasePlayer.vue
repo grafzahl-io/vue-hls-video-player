@@ -63,7 +63,7 @@
           </media-fullscreen-button>
         </media-control-bar>
       </media-theme-sutro>
-      <div class="custom-subtitles" v-show="(isFullscreen) || (!showTranscriptBlock)">
+      <div class="custom-subtitles" v-show="isFullscreen">
         <div class="subtitle-text" ref="subtitlesContainer" style="display: none;"></div>
       </div>
       <slot name="after-media"></slot>
@@ -826,7 +826,15 @@ function prepareVideoPlayer(link, { previewOnly = false } = {}) {
   video.value.muted = props.isMuted;
   video.value.currentTime = props.progress;
   // Chrome-like: update menu whenever track mode changes
-  video.value.textTracks.addEventListener('change', updateLangMenuState);
+  video.value.textTracks.addEventListener('change', () => {
+    updateLangMenuState();
+    // Clear the subtitle overlay when no track is actively showing.
+    const anyShowing = Array.from(video.value.textTracks || []).some(t => t.mode === 'showing');
+    if (!anyShowing && subtitlesContainer.value) {
+      subtitlesContainer.value.style.display = 'none';
+      subtitlesContainer.value.textContent = '';
+    }
+  });
 }
 
 

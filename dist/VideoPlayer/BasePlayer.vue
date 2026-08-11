@@ -1037,6 +1037,7 @@ const mutationObserver = (mutationsList, observer) => {
               display: flex;
               align-items: center;
               justify-content: space-between;
+              gap: 12px;
               cursor: pointer;
               border-radius: 4px;
               padding: 2px 12px;

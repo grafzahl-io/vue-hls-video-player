@@ -987,6 +987,7 @@ const mutationObserver = (mutationsList, observer) => {
               box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
               padding: 10px;
               min-width: 240px;
+              width: max-content;
               display: none;
               animation: fadeUp 0.15s ease-out;
               color: var(--media-text-color, #fff);
@@ -1041,6 +1042,7 @@ const mutationObserver = (mutationsList, observer) => {
             
             .lang-col li span {
               line-height: calc(1.2 * var(--base));
+              white-space: nowrap;
             }
 
             .lang-col li:hover {

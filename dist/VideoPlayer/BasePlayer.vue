@@ -306,7 +306,10 @@ function updateLangMenuState() {
     const langElement = li.querySelector('span[data-lang]')
     const liLang = langElement?.dataset?.lang;
     // const liLang = li.textContent.trim().toLowerCase();
-    li.classList.toggle('active', liLang === currentAudioLang.value.toLowerCase());
+    // data-lang keeps the tag as configured ("pt-BR"), so both sides have to be
+    // folded before comparing — otherwise every language with a region subtag
+    // loses its check mark.
+    li.classList.toggle('active', liLang?.toLowerCase() === currentAudioLang.value.toLowerCase());
   });
 
   // --- Subtitles ---
@@ -317,7 +320,7 @@ function updateLangMenuState() {
   subCol?.querySelectorAll('li').forEach(li => {
     const subElement = li.querySelector('span[data-lang]')
     const liLang = subElement?.dataset?.lang;
-    li.classList.toggle('active', liLang === activeSubLang);
+    li.classList.toggle('active', liLang?.toLowerCase() === activeSubLang);
   });
 }
 

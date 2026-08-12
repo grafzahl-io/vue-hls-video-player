@@ -306,7 +306,10 @@ function updateLangMenuState() {
     const langElement = li.querySelector('span[data-lang]')
     const liLang = langElement?.dataset?.lang;
     // const liLang = li.textContent.trim().toLowerCase();
-    li.classList.toggle('active', liLang === currentAudioLang.value.toLowerCase());
+    // data-lang keeps the tag as configured ("pt-BR"), so both sides have to be
+    // folded before comparing — otherwise every language with a region subtag
+    // loses its check mark.
+    li.classList.toggle('active', liLang?.toLowerCase() === currentAudioLang.value.toLowerCase());
   });
 
   // --- Subtitles ---
@@ -317,7 +320,7 @@ function updateLangMenuState() {
   subCol?.querySelectorAll('li').forEach(li => {
     const subElement = li.querySelector('span[data-lang]')
     const liLang = subElement?.dataset?.lang;
-    li.classList.toggle('active', liLang === activeSubLang);
+    li.classList.toggle('active', liLang?.toLowerCase() === activeSubLang);
   });
 }
 
@@ -987,6 +990,7 @@ const mutationObserver = (mutationsList, observer) => {
               box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 5px;
               padding: 10px;
               min-width: 240px;
+              width: max-content;
               display: none;
               animation: fadeUp 0.15s ease-out;
               color: var(--media-text-color, #fff);
@@ -1033,6 +1037,7 @@ const mutationObserver = (mutationsList, observer) => {
               display: flex;
               align-items: center;
               justify-content: space-between;
+              gap: 12px;
               cursor: pointer;
               border-radius: 4px;
               padding: 2px 12px;
@@ -1041,6 +1046,7 @@ const mutationObserver = (mutationsList, observer) => {
             
             .lang-col li span {
               line-height: calc(1.2 * var(--base));
+              white-space: nowrap;
             }
 
             .lang-col li:hover {

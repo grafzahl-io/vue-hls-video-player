@@ -207,6 +207,10 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.29
+  - Keep long language names on a single line in the language menu.
+  - Compare language tags case-insensitively so region subtags such as pt-BR keep their check mark.
+  - Add spacing between a language label and its check mark.
 v1.1.28
   - Always render the subtitle overlay container regardless of fullscreen or transcript state.
   - Clear subtitle overlay text when no text track is actively showing.

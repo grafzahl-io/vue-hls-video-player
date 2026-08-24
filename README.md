@@ -207,55 +207,73 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.30
+  - Add an hlsConfig prop, merged over the player's own hls.js configuration.
+  - Keep fetchSetup and xhrSetup player-owned so request authentication survives a passed config.
+
 v1.1.29
   - Keep long language names on a single line in the language menu.
   - Compare language tags case-insensitively so region subtags such as pt-BR keep their check mark.
   - Add spacing between a language label and its check mark.
+
 v1.1.28
   - Always render the subtitle overlay container regardless of fullscreen or transcript state.
   - Clear subtitle overlay text when no text track is actively showing.
+
 v1.1.27
   - Expose BasePlayer fullscreen control through wrapper components.
   - Add support for forced fullscreen re-entry from parent integrations.
   - Avoid fullscreen request errors when no user activation is available.
   - Keep fullscreen state and emitted events in sync across native and document fullscreen modes.
+
 v1.1.26
   - Prevent HLS chunk preloading during player initialization.
   - Start HLS loading only after user interaction.
   - Fallback to the first video frame when no preview image is available.
+
 v1.1.25
   - Decouple audio language switching from subtitle selection.
   - Preserve user-selected subtitle language across audio changes and HLS source reloads.
   - Prevent unintended subtitle resets caused by audio language updates.
+
 v1.1.24
   - Add user-initiated language-changed emit.
   - Fix unwanted language re-sync on player init.
   - Improve audio/subtitle switch stability.
+
 v1.1.23
   - Fix missing property for subtitles in vue definition
   - Clean up code
   - Set mutation observer to body and the video element itself - whatever loads first
+
 v1.1.22
   - Only show language selection if subtitles or audio options are > 1
+
 v1.1.21
   - Added more tolerant processing for .txt transcripts to allow empty lines as narrators
+
 v1.1.20
   - Stability and UI style improvements for Language switch
+
 v1.1.19
   - Switcher supports both single and multi-language HLS sources
   - Automatically syncs subtitle language with selected audio track
   - Works with videos that include or omit subtitles
   - Includes native cuechange event handling for subtitle updates
   - Removed the default media-captions (CC) button from the player
+
 v1.1.18
   - Added new slot `between-video-and-transcript` to `BasePlayer.vue`, `VDefaultVideoPlayer.vue` and `index.vue`
-to allow injection of custom UI between video and transcript.
+  to allow injection of custom UI between video and transcript.
   - Introduced a continuous **Frame Pointer Loop** that emits a `pointer-update` event with the current playback time and calculated frame number (30 fps) for real-time frame tracking.
+
 v1.1.17
   - Keep query params for transcription when getting from .vtt file to .txt
+
 v1.1.16
   - Add the options prop to both index.vue and VpDefaultVideoPlayer.vue to pass fullscreen label settings to the BasePlayer component.
   - Update fullscreen toggle logic: adjust aria-label, add or remove mediaIsFullscreen attribute, and safely access media-tooltip via shadowRoot to ensure proper icon and tooltip state handling.
+
 v1.1.13 - v1.1.15
   - Update the hls.js package
   - Fixes

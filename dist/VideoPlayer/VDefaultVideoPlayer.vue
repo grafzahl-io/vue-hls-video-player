@@ -6,6 +6,7 @@
     :link="link"
     :progress="progress"
     :isMuted="isMuted"
+    :hlsConfig="hlsConfig"
     :autoplay="autoplay"
     :isControls="isControls"
     :onVideoEnd="onVideoEnd"
@@ -50,6 +51,11 @@ const props = defineProps({
   progress: {
     type: Number,
     default: 0
+  },
+  /** Forwarded to BasePlayer. */
+  hlsConfig: {
+    type: Object,
+    default: () => ({})
   },
   isMuted: {
     type: Boolean,

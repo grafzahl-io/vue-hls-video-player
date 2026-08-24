@@ -13,6 +13,7 @@
     :progress="progress"
     :subtitles="subtitles"
     :isMuted="isMuted"
+    :hlsConfig="hlsConfig"
     :autoplay="autoplay"
     v-model="videoElement"
     ref="childRef"
@@ -59,6 +60,11 @@ const props = defineProps({
   progress: {
     type: Number,
     default: 0
+  },
+  /** Forwarded to BasePlayer. */
+  hlsConfig: {
+    type: Object,
+    default: () => ({})
   },
   isMuted: {
     type: Boolean,

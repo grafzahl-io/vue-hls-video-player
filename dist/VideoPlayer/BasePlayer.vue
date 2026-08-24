@@ -113,6 +113,18 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  /**
+   * Extra options handed to the Hls constructor, merged over the player's own.
+   *
+   * Empty by default, so nothing changes for existing callers. A host that knows
+   * more about its situation than the player can — one recording narration over
+   * the video, where a rebuffer costs the take rather than a moment's wait — can
+   * ask for a deeper buffer.
+   */
+  hlsConfig: {
+    type: Object,
+    default: () => ({})
+  },
   isMuted: {
     type: Boolean,
     default: false
@@ -726,6 +738,11 @@ function prepareVideoPlayer(link, { previewOnly = false } = {}) {
   const playerHlsConfig = {
     ...hlsConfig,
     autoStartLoad: !previewOnly,
+    // Last, so a host can override the defaults above — but never fetchSetup or
+    // xhrSetup, which carry the CDN token and are not the caller's business.
+    ...props.hlsConfig,
+    fetchSetup: hlsConfig.fetchSetup,
+    xhrSetup: hlsConfig.xhrSetup,
   };
 
   // Preparing video player with link: ${link}

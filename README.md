@@ -202,11 +202,16 @@ At the moment the following attribute are supported:
       exitFullscreen: 'Toggle fullscreen',
       mute: 'Mute',
       unmute: 'Unmute',
+      transcript: 'Transcript',
     }
   }
 ```
 
 ### Last release:
+v1.1.32
+  - New label `ui.labels.transcript` for the heading of the transcript block, so it can be
+    translated like the other labels (default: "Transcript").
+
 v1.1.31
   - Resume HLS loading when play() is called on the video element from outside the player.
     Without a preview image the player stops loading after the first fragment, and only

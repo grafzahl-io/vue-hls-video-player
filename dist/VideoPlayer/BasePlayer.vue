@@ -24,6 +24,7 @@
           class="hls-player"
           slot="media"
           :key="link"
+          @play="onNativePlay"
           @pause="pause"
           @keyup="changeSpeed"
           @ended="onVideoEnd"
@@ -669,6 +670,21 @@ function resumePreviewFrameStream() {
   hls.startLoad(video.value.currentTime || 0)
 }
 
+// Without a preview image the player loads only the first fragment to show the
+// first frame, then stops loading. Its own play button resumes loading through
+// startPlayback(). A parent component that calls video.play() directly skips that
+// function, so loading never resumed and playback stalled after ~10 s. Listening
+// to the video's native "play" event resumes loading no matter who started it.
+let resumeAfterFirstFrame = false
+
+function onNativePlay() {
+  if (previewFrameLoading.value) {
+    resumeAfterFirstFrame = true
+    return
+  }
+  resumePreviewFrameStream()
+}
+
 function resetPlayer() {
   hlsInitialized.value = false
   hlsInitializing.value = false
@@ -766,6 +782,12 @@ function prepareVideoPlayer(link, { previewOnly = false } = {}) {
         video.value.pause();
 
         if (!pendingPlayRequest.value) {
+          // Someone called play() from outside while the first frame loaded.
+          if (resumeAfterFirstFrame) {
+            resumeAfterFirstFrame = false;
+            hls.startLoad(video.value.currentTime || 0);
+            return;
+          }
           previewFramePrimed.value = true;
           hls.stopLoad();
           return;

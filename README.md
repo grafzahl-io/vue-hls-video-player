@@ -207,6 +207,11 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.31
+  - Resume HLS loading when play() is called on the video element from outside the player.
+    Without a preview image the player stops loading after the first fragment, and only
+    its own play button and seek resumed it, so an external play() stalled after ~10 s.
+
 v1.1.30
   - Add an hlsConfig prop, merged over the player's own hls.js configuration.
   - Keep fetchSetup and xhrSetup player-owned so request authentication survives a passed config.

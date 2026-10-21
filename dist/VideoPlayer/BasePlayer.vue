@@ -18,7 +18,7 @@
         </div>
       </div>
       <slot name="before-media"></slot>
-      <media-theme-sutro class="video-player-theme-container" :class="{'is-fullscreen': isFullscreen}">
+      <media-theme-sutro ref="themeRef" class="video-player-theme-container" :class="{'is-fullscreen': isFullscreen}">
 
         <video
           class="hls-player"
@@ -371,6 +371,41 @@ function emitPointerUpdate() {
 
 const videoElement = defineModel()
 
+// The sutro theme writes its settings menu entries ("Playback Speed", "Quality",
+// "Subtitles/CC") as plain text into its template, with no attribute to change
+// them. Once the theme has rendered, replace them with the labels passed in
+// options.ui.labels, so a host app can translate the menu like the other labels.
+const themeRef = ref(null)
+const SETTINGS_MENU_LABELS = {
+  'media-playback-rate-menu': 'playbackSpeed',
+  'media-rendition-menu': 'quality',
+  'media-captions-menu': 'subtitles',
+}
+
+function applySettingsMenuLabels() {
+  const root = themeRef.value?.shadowRoot
+  const labels = props.options?.ui?.labels
+  if (!root || !labels) return
+  for (const [menuTag, key] of Object.entries(SETTINGS_MENU_LABELS)) {
+    const label = labels[key]
+    const menu = root.querySelector(`media-settings-menu-item > ${menuTag}`)
+    if (!label || !menu) continue
+    const item = menu.parentElement
+    const text = [...item.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+    )
+    if (text) text.textContent = ` ${label} `
+    const title = menu.querySelector('[slot="title"]')
+    if (title) title.textContent = label
+  }
+}
+
+function whenThemeRendered(callback) {
+  customElements.whenDefined('media-theme-sutro').then(() => requestAnimationFrame(callback))
+}
+
+watch(() => props.options?.ui?.labels, () => whenThemeRendered(applySettingsMenuLabels), { deep: true })
+
 defineExpose({ startFullscreen })
 
 onMounted(() => {
@@ -380,6 +415,7 @@ onMounted(() => {
   }
   initVideo()
   maybeLoadFirstFrame()
+  whenThemeRendered(applySettingsMenuLabels)
 })
 
 onUnmounted(() => {

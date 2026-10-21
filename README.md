@@ -203,6 +203,10 @@ At the moment the following attribute are supported:
       mute: 'Mute',
       unmute: 'Unmute',
       transcript: 'Transcript',
+      // settings menu entries of the sutro theme
+      playbackSpeed: 'Playback Speed',
+      quality: 'Quality',
+      subtitles: 'Subtitles/CC',
     }
   }
 ```
@@ -211,6 +215,8 @@ At the moment the following attribute are supported:
 v1.1.32
   - New label `ui.labels.transcript` for the heading of the transcript block, so it can be
     translated like the other labels (default: "Transcript").
+  - New labels `ui.labels.playbackSpeed`, `quality` and `subtitles` for the entries of the
+    settings menu, which the sutro theme writes as fixed English text.
 
 v1.1.31
   - Resume HLS loading when play() is called on the video element from outside the player.

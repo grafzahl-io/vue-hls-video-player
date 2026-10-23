@@ -25,6 +25,7 @@
           slot="media"
           :key="link"
           @play="onNativePlay"
+          @seeking="onNativeSeeking"
           @pause="pause"
           @keyup="changeSpeed"
           @ended="onVideoEnd"
@@ -718,6 +719,16 @@ function onNativePlay() {
     resumeAfterFirstFrame = true
     return
   }
+  resumePreviewFrameStream()
+}
+
+// The same for a seek on the video element itself (the time range, or a script
+// setting currentTime) before the first play: it landed in the stopped stream and
+// never completed, so the picture froze until play was pressed. It now resumes
+// loading at the new position. While the first frame loads, the player's own
+// initial seek fires this too, so that phase is left to the loadeddata handler.
+function onNativeSeeking() {
+  if (previewFrameLoading.value) return
   resumePreviewFrameStream()
 }
 

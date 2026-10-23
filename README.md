@@ -212,6 +212,11 @@ At the moment the following attribute are supported:
 ```
 
 ### Last release:
+v1.1.33
+  - Resume HLS loading when the video element seeks before the first play. Without a
+    preview image the player stops loading after the first fragment, so a seek through
+    the time range or currentTime never completed and the picture froze until play.
+
 v1.1.32
   - New label `ui.labels.transcript` for the heading of the transcript block, so it can be
     translated like the other labels (default: "Transcript").
